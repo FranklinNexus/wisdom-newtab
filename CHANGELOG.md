@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.6.1 - 2026-07-27
+
+- Added complete Chrome extension icon sizes and store-ready manifest metadata.
+- Added a public privacy policy and reviewer-ready permission explanations.
+- Added Chrome Web Store screenshots, a small promo tile, and listing copy.
+- Added automated validation for required PNG dimensions.
+
 ## 0.6.0 - 2026-07-27
 
 - Replaced the fixed GitHub column with a single switchable widget sidebar.

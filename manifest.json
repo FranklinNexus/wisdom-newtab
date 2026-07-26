@@ -1,8 +1,15 @@
 {
   "manifest_version": 3,
   "name": "Wisdom New Tab",
-  "version": "0.6.0",
-  "description": "A full-screen new tab built around WisdomEchoes.",
+  "version": "0.6.1",
+  "description": "A calm new tab with search, developer shortcuts, live tech trends, and a focus timer.",
+  "homepage_url": "https://github.com/FranklinNexus/wisdom-newtab",
+  "icons": {
+    "16": "assets/extension/icon16.png",
+    "32": "assets/extension/icon32.png",
+    "48": "assets/extension/icon48.png",
+    "128": "assets/extension/icon128.png"
+  },
   "permissions": ["storage"],
   "host_permissions": [
     "https://api.github.com/*",
