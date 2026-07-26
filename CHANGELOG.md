@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.6.0 - 2026-07-27
+
+- Replaced the fixed GitHub column with a single switchable widget sidebar.
+- Added live Hacker News stories with a ten-minute local cache.
+- Added a local 25/5-minute focus timer with pause and reset controls.
+- Added persistent collapse, expand, and active-widget state.
+- Added a responsive overlay drawer for narrow browser windows.
+
 ## 0.5.1 - 2026-07-26
 
 - Removed the top-left WisdomEchoes wordmark.

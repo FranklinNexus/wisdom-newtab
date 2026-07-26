@@ -3,6 +3,10 @@ const GITHUB_CACHE_KEY = "wisdomGithubRisingV1";
 const GITHUB_REFRESH_INTERVAL = 10 * 60 * 1000;
 const GITHUB_RETRY_INTERVAL = 2 * 60 * 1000;
 const GITHUB_CACHE_TTL = GITHUB_REFRESH_INTERVAL;
+const HACKERNEWS_CACHE_KEY = "wisdomHackerNewsV1";
+const HACKERNEWS_REFRESH_INTERVAL = 10 * 60 * 1000;
+const HACKERNEWS_CACHE_TTL = HACKERNEWS_REFRESH_INTERVAL;
+const FOCUS_DURATIONS = { focus: 25 * 60, break: 5 * 60 };
 
 const brandLogos = [
   { id: "wisdomechoes", match: /wisdomechoes\.net/i, src: "assets/logos/wisdomechoes.png" },
@@ -18,6 +22,8 @@ const shortcutLabelMigrations = {
 const defaultSettings = {
   locale: "en",
   surface: "light",
+  activeWidget: "github",
+  widgetCollapsed: false,
   shortcuts: [
     { id: "wisdomechoes", label: "Blog", url: "https://www.wisdomechoes.net/", color: "#29282c" },
     { id: "langqian", label: "SurferGarage", url: "https://www.lang-qian.com/", color: "#ef4f35" },
@@ -35,7 +41,22 @@ const copy = {
     githubLoading: "Loading GitHub trends...",
     githubNoDescription: "No description yet.",
     githubRetry: "Retry",
-    githubRefresh: "Refresh GitHub trends"
+    githubRefresh: "Refresh GitHub trends",
+    hackernewsTitle: "Hacker News",
+    hackernewsViewAll: "Open Hacker News",
+    hackernewsEmpty: "Hacker News unavailable",
+    hackernewsLoading: "Loading Hacker News...",
+    hackernewsRetry: "Retry",
+    hackernewsRefresh: "Refresh Hacker News",
+    focusTitle: "Focus session",
+    focusStart: "Start",
+    focusPause: "Pause",
+    focusReset: "Reset timer",
+    collapseWidgets: "Collapse widgets",
+    openWidgets: "Open widgets",
+    widgetGithub: "GitHub trends",
+    widgetHackernews: "Hacker News",
+    widgetFocus: "Focus timer"
   },
   zh: {
     search: "用 Google 搜索",
@@ -46,7 +67,22 @@ const copy = {
     githubLoading: "正在载入 GitHub 趋势...",
     githubNoDescription: "暂无简介。",
     githubRetry: "重试",
-    githubRefresh: "刷新 GitHub 趋势"
+    githubRefresh: "刷新 GitHub 趋势",
+    hackernewsTitle: "Hacker News 热门",
+    hackernewsViewAll: "打开 Hacker News",
+    hackernewsEmpty: "Hacker News 暂时不可用",
+    hackernewsLoading: "正在载入 Hacker News...",
+    hackernewsRetry: "重试",
+    hackernewsRefresh: "刷新 Hacker News",
+    focusTitle: "专注计时",
+    focusStart: "开始",
+    focusPause: "暂停",
+    focusReset: "重置计时器",
+    collapseWidgets: "收起组件",
+    openWidgets: "打开组件",
+    widgetGithub: "GitHub 趋势",
+    widgetHackernews: "Hacker News",
+    widgetFocus: "专注计时器"
   }
 };
 
@@ -74,12 +110,23 @@ const storage = {
 };
 
 const elements = {
+  focusModes: [...document.querySelectorAll("[data-focus-duration]")],
+  focusProgressBar: document.querySelector("#focus-progress-bar"),
+  focusReset: document.querySelector("#focus-reset"),
+  focusStart: document.querySelector("#focus-start"),
+  focusStartLabel: document.querySelector("#focus-start-label"),
+  focusTime: document.querySelector("#focus-time"),
+  focusTitle: document.querySelector("#focus-title"),
   githubList: document.querySelector("#github-list"),
-  githubRefresh: document.querySelector("#github-refresh"),
   githubRepoTemplate: document.querySelector("#github-repo-template"),
   githubSearchLink: document.querySelector("#github-search-link"),
   githubSearchLabel: document.querySelector("#github-search-label"),
   githubTitle: document.querySelector("#github-rising-title"),
+  hackernewsItemTemplate: document.querySelector("#hackernews-item-template"),
+  hackernewsList: document.querySelector("#hackernews-list"),
+  hackernewsSearchLabel: document.querySelector("#hackernews-search-label"),
+  hackernewsTitle: document.querySelector("#hackernews-title"),
+  homeStage: document.querySelector("#home-stage"),
   languageLabel: document.querySelector("#language-label"),
   searchForm: document.querySelector("#search-form"),
   searchInput: document.querySelector("#search-input"),
@@ -89,7 +136,12 @@ const elements = {
   shortcutEditorTemplate: document.querySelector("#shortcut-editor-template"),
   shortcutGrid: document.querySelector("#shortcut-grid"),
   shortcutSettings: document.querySelector("#shortcut-settings"),
-  shortcutTemplate: document.querySelector("#shortcut-template")
+  shortcutTemplate: document.querySelector("#shortcut-template"),
+  widgetCollapse: document.querySelector("#widget-collapse"),
+  widgetExpand: document.querySelector("#widget-expand"),
+  widgetPanes: [...document.querySelectorAll("[data-widget-pane]")],
+  widgetRefresh: document.querySelector("#widget-refresh"),
+  widgetTabs: [...document.querySelectorAll("[data-widget-tab]")]
 };
 
 let settings = structuredClone(defaultSettings);
@@ -99,6 +151,14 @@ let githubRefreshRequest;
 let githubLastFetchedAt = 0;
 let githubLastAttemptAt = 0;
 let githubRepositories = [];
+let hackernewsRefreshRequest;
+let hackernewsItems = [];
+let focusDuration = FOCUS_DURATIONS.focus;
+let focusRemaining = focusDuration;
+let focusRunning = false;
+let focusEndsAt = 0;
+let focusTimer;
+let focusCompletedSessions = 0;
 
 function normalizeUrl(value) {
   const trimmed = String(value || "").trim();
@@ -137,6 +197,8 @@ function sanitizeSettings(candidate) {
   return {
     locale: ["en", "zh"].includes(value.locale) ? value.locale : "en",
     surface: ["light", "dark"].includes(value.surface) ? value.surface : "light",
+    activeWidget: ["github", "hackernews", "focus"].includes(value.activeWidget) ? value.activeWidget : "github",
+    widgetCollapsed: Boolean(value.widgetCollapsed),
     shortcuts
   };
 }
@@ -197,16 +259,17 @@ function formatCompactNumber(value) {
   return new Intl.NumberFormat("en", { notation: "compact", maximumFractionDigits: 1 }).format(Number(value) || 0);
 }
 
-function setRefreshState(state) {
+function setRefreshState(state, widget = settings.activeWidget) {
+  if (widget !== settings.activeWidget) return;
   clearTimeout(refreshFeedbackTimer);
-  elements.githubRefresh.classList.remove("is-loading", "is-success", "is-error");
-  elements.githubRefresh.classList.add(`is-${state}`);
-  elements.githubRefresh.disabled = state === "loading";
-  elements.githubRefresh.setAttribute("aria-busy", String(state === "loading"));
+  elements.widgetRefresh.classList.remove("is-loading", "is-success", "is-error");
+  elements.widgetRefresh.classList.add(`is-${state}`);
+  elements.widgetRefresh.disabled = state === "loading";
+  elements.widgetRefresh.setAttribute("aria-busy", String(state === "loading"));
 
   if (state !== "loading") {
     refreshFeedbackTimer = setTimeout(() => {
-      elements.githubRefresh.classList.remove(`is-${state}`);
+      elements.widgetRefresh.classList.remove(`is-${state}`);
     }, 900);
   }
 }
@@ -215,7 +278,7 @@ function renderGitHubState(message, retry = false) {
   githubRepositories = [];
   elements.githubList.replaceChildren();
   const item = document.createElement("li");
-  item.className = "github-state";
+  item.className = "widget-state";
   const text = document.createElement("span");
   text.textContent = message;
   item.append(text);
@@ -283,7 +346,7 @@ async function syncGitHubRising(force = false) {
   if (!force && cacheIsFresh) return;
   if (!navigator.onLine) {
     githubLastAttemptAt = Date.now();
-    if (force) setRefreshState("error");
+    if (force) setRefreshState("error", "github");
     if (!hasCachedItems) {
       renderGitHubState(copy[settings.locale].githubEmpty, true);
     }
@@ -293,7 +356,7 @@ async function syncGitHubRising(force = false) {
   const apiUrl = new URL("https://api.github.com/search/repositories");
   apiUrl.search = new URLSearchParams({ q: query, sort: "stars", order: "desc", per_page: "5" }).toString();
   githubLastAttemptAt = Date.now();
-  setRefreshState("loading");
+  setRefreshState("loading", "github");
 
   try {
     const response = await fetch(apiUrl, { headers: { Accept: "application/vnd.github+json" } });
@@ -313,9 +376,9 @@ async function syncGitHubRising(force = false) {
     await storage.set(GITHUB_CACHE_KEY, cache);
     githubLastFetchedAt = cache.fetchedAt;
     renderGitHubRepos(repositories);
-    setRefreshState("success");
+    setRefreshState("success", "github");
   } catch {
-    setRefreshState("error");
+    setRefreshState("error", "github");
     if (!hasCachedItems) {
       renderGitHubState(copy[settings.locale].githubEmpty, true);
     }
@@ -332,15 +395,228 @@ function loadGitHubRising(force = false) {
   return githubRefreshRequest;
 }
 
+function formatRelativeTime(unixSeconds) {
+  const minutes = Math.max(1, Math.floor((Date.now() - Number(unixSeconds) * 1000) / 60000));
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  return `${Math.floor(hours / 24)}d ago`;
+}
+
+function renderHackerNewsState(message, retry = false) {
+  hackernewsItems = [];
+  elements.hackernewsList.replaceChildren();
+  const item = document.createElement("li");
+  item.className = "widget-state";
+  const text = document.createElement("span");
+  text.textContent = message;
+  item.append(text);
+
+  if (retry) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "secondary-button";
+    button.textContent = copy[settings.locale].hackernewsRetry;
+    button.addEventListener("click", () => loadHackerNews(true));
+    item.append(button);
+  }
+
+  elements.hackernewsList.append(item);
+}
+
+function renderHackerNewsItems(items) {
+  hackernewsItems = items;
+  elements.hackernewsList.replaceChildren();
+  items.forEach((story, index) => {
+    const item = elements.hackernewsItemTemplate.content.firstElementChild.cloneNode(true);
+    const link = item.querySelector("a");
+    link.href = story.url;
+    item.querySelector(".hackernews-rank").textContent = String(index + 1).padStart(2, "0");
+    item.querySelector(".hackernews-meta").textContent = `${formatCompactNumber(story.score)} PTS`;
+    item.querySelector("h3").textContent = story.title;
+    item.querySelector("p").textContent = `${story.by} / ${formatRelativeTime(story.time)} / ${formatCompactNumber(story.comments)} comments`;
+    elements.hackernewsList.append(item);
+  });
+}
+
+async function syncHackerNews(force = false) {
+  const cached = await storage.get(HACKERNEWS_CACHE_KEY, null);
+  const hasCachedItems = Array.isArray(cached?.items) && cached.items.length > 0;
+  const cacheIsFresh = hasCachedItems && Date.now() - Number(cached.fetchedAt) < HACKERNEWS_CACHE_TTL;
+
+  if (hasCachedItems) {
+    renderHackerNewsItems(cached.items);
+  } else {
+    renderHackerNewsState(copy[settings.locale].hackernewsLoading);
+  }
+
+  if (!force && cacheIsFresh) return;
+  if (!navigator.onLine) {
+    if (force) setRefreshState("error", "hackernews");
+    if (!hasCachedItems) renderHackerNewsState(copy[settings.locale].hackernewsEmpty, true);
+    return;
+  }
+
+  setRefreshState("loading", "hackernews");
+
+  try {
+    const idsResponse = await fetch("https://hacker-news.firebaseio.com/v0/topstories.json");
+    if (!idsResponse.ok) throw new Error(`Hacker News API returned ${idsResponse.status}`);
+    const ids = await idsResponse.json();
+    const stories = await Promise.all((ids || []).slice(0, 12).map(async (id) => {
+      const response = await fetch(`https://hacker-news.firebaseio.com/v0/item/${id}.json`);
+      if (!response.ok) return null;
+      return response.json();
+    }));
+    const items = stories.filter((story) => story?.type === "story" && story.title).slice(0, 5).map((story) => ({
+      id: Number(story.id),
+      title: String(story.title).slice(0, 180),
+      url: normalizeUrl(story.url) || `https://news.ycombinator.com/item?id=${story.id}`,
+      by: String(story.by || "unknown"),
+      time: Number(story.time) || 0,
+      score: Number(story.score) || 0,
+      comments: Number(story.descendants) || 0
+    }));
+    if (!items.length) throw new Error("Hacker News API returned no stories");
+
+    await storage.set(HACKERNEWS_CACHE_KEY, { fetchedAt: Date.now(), items });
+    renderHackerNewsItems(items);
+    setRefreshState("success", "hackernews");
+  } catch {
+    setRefreshState("error", "hackernews");
+    if (!hasCachedItems) renderHackerNewsState(copy[settings.locale].hackernewsEmpty, true);
+  }
+}
+
+function loadHackerNews(force = false) {
+  if (hackernewsRefreshRequest) return hackernewsRefreshRequest;
+  hackernewsRefreshRequest = syncHackerNews(force).finally(() => {
+    hackernewsRefreshRequest = null;
+  });
+  return hackernewsRefreshRequest;
+}
+
+function renderFocusTimer() {
+  const minutes = Math.floor(focusRemaining / 60);
+  const seconds = Math.max(0, focusRemaining % 60);
+  elements.focusTime.textContent = `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+  elements.focusProgressBar.style.width = `${Math.min(100, Math.max(0, (1 - focusRemaining / focusDuration) * 100))}%`;
+  elements.focusStartLabel.textContent = copy[settings.locale][focusRunning ? "focusPause" : "focusStart"];
+  elements.focusStart.querySelector("use").setAttribute("href", `assets/icons.svg#${focusRunning ? "pause" : "play"}`);
+  document.querySelectorAll(".focus-sessions span").forEach((dot, index) => {
+    dot.classList.toggle("is-complete", index < Math.min(4, focusCompletedSessions));
+  });
+}
+
+function tickFocusTimer() {
+  focusRemaining = Math.max(0, Math.ceil((focusEndsAt - Date.now()) / 1000));
+  if (focusRemaining === 0) {
+    clearInterval(focusTimer);
+    focusRunning = false;
+    focusCompletedSessions += 1;
+  }
+  renderFocusTimer();
+}
+
+function toggleFocusTimer() {
+  if (focusRunning) {
+    focusRemaining = Math.max(0, Math.ceil((focusEndsAt - Date.now()) / 1000));
+    clearInterval(focusTimer);
+    focusRunning = false;
+    renderFocusTimer();
+    return;
+  }
+
+  if (focusRemaining <= 0) focusRemaining = focusDuration;
+  focusRunning = true;
+  focusEndsAt = Date.now() + focusRemaining * 1000;
+  clearInterval(focusTimer);
+  focusTimer = setInterval(tickFocusTimer, 250);
+  renderFocusTimer();
+}
+
+function resetFocusTimer() {
+  clearInterval(focusTimer);
+  focusRunning = false;
+  focusRemaining = focusDuration;
+  renderFocusTimer();
+}
+
+function setFocusDuration(minutes) {
+  focusDuration = Number(minutes) * 60;
+  focusRemaining = focusDuration;
+  focusRunning = false;
+  clearInterval(focusTimer);
+  elements.focusModes.forEach((button) => {
+    button.classList.toggle("is-active", Number(button.dataset.focusDuration) === Number(minutes));
+  });
+  renderFocusTimer();
+}
+
+function applyWidgetState() {
+  elements.homeStage.classList.toggle("is-widget-collapsed", settings.widgetCollapsed);
+  elements.widgetTabs.forEach((tab) => {
+    const active = tab.dataset.widgetTab === settings.activeWidget;
+    tab.classList.toggle("is-active", active);
+    tab.setAttribute("aria-selected", String(active));
+    tab.tabIndex = active ? 0 : -1;
+  });
+  elements.widgetPanes.forEach((pane) => {
+    const active = pane.dataset.widgetPane === settings.activeWidget;
+    pane.hidden = !active;
+    pane.classList.toggle("is-active", active);
+  });
+  elements.widgetRefresh.hidden = settings.activeWidget === "focus";
+  const refreshKey = settings.activeWidget === "hackernews" ? "hackernewsRefresh" : "githubRefresh";
+  elements.widgetRefresh.setAttribute("aria-label", copy[settings.locale][refreshKey]);
+  elements.widgetRefresh.title = copy[settings.locale][refreshKey];
+
+  if (settings.activeWidget === "hackernews") loadHackerNews(false);
+  if (settings.activeWidget === "github") loadGitHubRising(false);
+}
+
+async function selectWidget(widget) {
+  if (!["github", "hackernews", "focus"].includes(widget)) return;
+  settings.activeWidget = widget;
+  await storage.set(STORAGE_KEY, settings);
+  applyWidgetState();
+}
+
+async function setWidgetCollapsed(collapsed) {
+  settings.widgetCollapsed = collapsed;
+  await storage.set(STORAGE_KEY, settings);
+  applyWidgetState();
+}
+
 function applySettings() {
   document.documentElement.dataset.surface = settings.surface;
   elements.languageLabel.textContent = settings.locale === "en" ? "中" : "EN";
   elements.searchInput.placeholder = copy[settings.locale].search;
   elements.githubTitle.textContent = copy[settings.locale].githubTitle;
   elements.githubSearchLabel.textContent = copy[settings.locale].githubViewAll;
-  elements.githubRefresh.setAttribute("aria-label", copy[settings.locale].githubRefresh);
-  elements.githubRefresh.title = copy[settings.locale].githubRefresh;
+  elements.hackernewsTitle.textContent = copy[settings.locale].hackernewsTitle;
+  elements.hackernewsSearchLabel.textContent = copy[settings.locale].hackernewsViewAll;
+  elements.focusTitle.textContent = copy[settings.locale].focusTitle;
+  elements.focusReset.setAttribute("aria-label", copy[settings.locale].focusReset);
+  elements.focusReset.title = copy[settings.locale].focusReset;
+  elements.widgetCollapse.setAttribute("aria-label", copy[settings.locale].collapseWidgets);
+  elements.widgetCollapse.title = copy[settings.locale].collapseWidgets;
+  elements.widgetExpand.setAttribute("aria-label", copy[settings.locale].openWidgets);
+  elements.widgetExpand.title = copy[settings.locale].openWidgets;
+  const widgetLabels = {
+    github: copy[settings.locale].widgetGithub,
+    hackernews: copy[settings.locale].widgetHackernews,
+    focus: copy[settings.locale].widgetFocus
+  };
+  elements.widgetTabs.forEach((tab) => {
+    const label = widgetLabels[tab.dataset.widgetTab];
+    tab.setAttribute("aria-label", label);
+    tab.title = label;
+  });
   if (githubRepositories.length) renderGitHubRepos(githubRepositories);
+  if (hackernewsItems.length) renderHackerNewsItems(hackernewsItems);
+  renderFocusTimer();
+  applyWidgetState();
   renderShortcuts();
 }
 
@@ -408,7 +684,6 @@ async function initialize() {
   settings = sanitizeSettings(await storage.get(STORAGE_KEY, defaultSettings));
   await storage.set(STORAGE_KEY, settings);
   applySettings();
-  loadGitHubRising();
 }
 
 elements.searchForm.addEventListener("submit", (event) => {
@@ -428,18 +703,39 @@ document.querySelector("#language-toggle").addEventListener("click", async () =>
   applySettings();
 });
 
-elements.githubRefresh.addEventListener("click", () => loadGitHubRising(true));
+elements.widgetTabs.forEach((tab) => {
+  tab.addEventListener("click", () => selectWidget(tab.dataset.widgetTab));
+});
+
+elements.widgetCollapse.addEventListener("click", () => setWidgetCollapsed(true));
+elements.widgetExpand.addEventListener("click", () => setWidgetCollapsed(false));
+elements.widgetRefresh.addEventListener("click", () => {
+  if (settings.activeWidget === "hackernews") {
+    loadHackerNews(true);
+    return;
+  }
+  loadGitHubRising(true);
+});
+
+elements.focusStart.addEventListener("click", toggleFocusTimer);
+elements.focusReset.addEventListener("click", resetFocusTimer);
+elements.focusModes.forEach((button) => {
+  button.addEventListener("click", () => setFocusDuration(button.dataset.focusDuration));
+});
 
 document.addEventListener("visibilitychange", () => {
   if (document.hidden) {
     clearTimeout(githubRefreshTimer);
     return;
   }
-  loadGitHubRising(false);
+  if (settings.activeWidget === "hackernews") loadHackerNews(false);
+  if (settings.activeWidget === "github") loadGitHubRising(false);
 });
 
 window.addEventListener("online", () => {
-  if (!document.hidden) loadGitHubRising(false);
+  if (document.hidden) return;
+  if (settings.activeWidget === "hackernews") loadHackerNews(false);
+  if (settings.activeWidget === "github") loadGitHubRising(false);
 });
 
 elements.settingsForm.addEventListener("submit", async (event) => {

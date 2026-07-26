@@ -1,6 +1,6 @@
 # Wisdom New Tab
 
-一个以 [WisdomEchoes](https://www.wisdomechoes.net/) 为视觉和内容基线的 Chrome / Edge 新标签页插件。它采用真正的浏览器导航页结构：中央 Google 搜索、官方站点 logo 快捷入口、轻量工具栏和实时 GitHub 项目榜单。
+一个以 [WisdomEchoes](https://www.wisdomechoes.net/) 为视觉和内容基线的 Chrome / Edge 新标签页插件。它采用真正的浏览器导航页结构：中央 Google 搜索、官方站点 logo 快捷入口、轻量工具栏和可切换的实时组件侧栏。
 
 ![Wisdom New Tab preview](assets/preview.png)
 
@@ -11,7 +11,10 @@
 - `g`、`gh`、`yt`、`mdn`、`npm`、`wiki` 搜索前缀
 - Blog、SurferGarage 和 GitHub 官方 logo 快捷入口，按品牌轮廓自适应显示
 - 快捷入口可新增、编辑、删除、选择颜色，最多 10 个
-- `GitHub Rising`：按最近 7 天新建仓库的 star 数排列，显示语言、简介、star 和 fork
+- 单一组件侧栏，可切换 GitHub Trending、Hacker News 和 25/5 分钟专注计时器
+- 侧栏可完全收起，收起后搜索区自动回到页面中心，并记住上次状态和组件
+- `GitHub Trending`：按最近 7 天新建仓库的 star 数排列，显示语言、简介、star 和 fork
+- `Hacker News`：显示当前热门技术讨论、分数、作者、时间和评论数
 - GitHub 榜单在标签页可见时每 10 分钟自动更新，重新切回标签页时会检查并补刷
 - 自动更新使用 GitHub Search API 轮询而非服务端推送；隐藏标签页暂停请求，离线或限流时继续使用最近一次结果
 - 中英文界面切换
@@ -67,7 +70,7 @@ wiki new tab page      -> Wikipedia
 manifest.json          Manifest V3 配置和新标签页覆盖
 newtab.html            页面语义结构
 styles.css             全屏导航页视觉和响应式布局
-app.js                 搜索、快捷入口、GitHub 榜单、设置和存储
+app.js                 搜索、快捷入口、组件数据、计时器、设置和存储
 assets/icons.svg       Lucide 图标精简集合
 assets/logos/          Blog、SurferGarage 和 GitHub 官方 logo
 scripts/validate.mjs   零依赖项目校验
@@ -75,7 +78,7 @@ scripts/validate.mjs   零依赖项目校验
 
 ## 隐私与权限
 
-插件申请 `storage` 权限，并仅对 `https://api.github.com/*` 申请网络访问，用于读取公开仓库搜索结果。它不读取浏览历史、不注入其他网页、不发送分析数据，也不加载远程脚本。搜索内容只会在提交后发送到你选择的搜索目标。
+插件申请 `storage` 权限，并仅对 GitHub API 和 Hacker News Firebase API 申请网络访问，用于读取公开项目与新闻数据。它不读取浏览历史、不注入其他网页、不发送分析数据，也不加载远程脚本。搜索内容只会在提交后发送到你选择的搜索目标。
 
 ## 发布
 

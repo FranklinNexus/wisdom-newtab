@@ -24,7 +24,7 @@
         </div>
       </header>
 
-      <main class="home-stage">
+      <main class="home-stage" id="home-stage">
         <section class="command-center" aria-label="Search and shortcuts">
           <form class="search-bar" id="search-form" role="search">
             <svg class="search-icon" aria-hidden="true"><use href="assets/icons.svg#search"></use></svg>
@@ -38,23 +38,95 @@
           <div class="shortcut-grid" id="shortcut-grid" aria-label="Shortcuts"></div>
         </section>
 
-        <aside class="github-rising" aria-labelledby="github-rising-title">
-          <header class="github-rising-header">
-            <h2 id="github-rising-title">Trending on GitHub</h2>
-            <button class="tool-button github-refresh-button" id="github-refresh" type="button" aria-label="Refresh GitHub trends" title="Refresh GitHub trends">
-              <svg aria-hidden="true"><use href="assets/icons.svg#refresh"></use></svg>
-            </button>
+        <aside class="widget-sidebar" id="widget-sidebar" aria-label="Widgets">
+          <header class="widget-sidebar-header">
+            <nav class="widget-tabs" aria-label="Choose widget" role="tablist">
+              <button class="widget-tab is-active" id="widget-tab-github" data-widget-tab="github" type="button" role="tab" aria-selected="true" aria-controls="widget-pane-github" aria-label="GitHub trends" title="GitHub trends">
+                <svg aria-hidden="true"><use href="assets/icons.svg#github"></use></svg>
+              </button>
+              <button class="widget-tab" id="widget-tab-hackernews" data-widget-tab="hackernews" type="button" role="tab" aria-selected="false" aria-controls="widget-pane-hackernews" aria-label="Hacker News" title="Hacker News">
+                <svg aria-hidden="true"><use href="assets/icons.svg#newspaper"></use></svg>
+              </button>
+              <button class="widget-tab" id="widget-tab-focus" data-widget-tab="focus" type="button" role="tab" aria-selected="false" aria-controls="widget-pane-focus" aria-label="Focus timer" title="Focus timer">
+                <svg aria-hidden="true"><use href="assets/icons.svg#timer"></use></svg>
+              </button>
+            </nav>
+
+            <div class="widget-sidebar-actions">
+              <button class="tool-button widget-refresh-button" id="widget-refresh" type="button" aria-label="Refresh widget" title="Refresh widget">
+                <svg aria-hidden="true"><use href="assets/icons.svg#refresh"></use></svg>
+              </button>
+              <button class="tool-button widget-collapse-button" id="widget-collapse" type="button" aria-label="Collapse widgets" title="Collapse widgets">
+                <svg aria-hidden="true"><use href="assets/icons.svg#panel-right-close"></use></svg>
+              </button>
+            </div>
           </header>
 
-          <ol class="github-list" id="github-list" aria-live="polite"></ol>
+          <section class="widget-pane widget-pane-data is-active" id="widget-pane-github" data-widget-pane="github" role="tabpanel" aria-labelledby="widget-tab-github">
+            <header class="widget-pane-heading">
+              <div>
+                <span class="widget-kicker">BUILD / 01</span>
+                <h2 id="github-rising-title">Trending on GitHub</h2>
+              </div>
+            </header>
+            <ol class="github-list" id="github-list" aria-live="polite"></ol>
+            <footer class="widget-pane-footer">
+              <a id="github-search-link" href="https://github.com/search" rel="noreferrer">
+                <span id="github-search-label">View all</span>
+                <svg aria-hidden="true"><use href="assets/icons.svg#arrow-up-right"></use></svg>
+              </a>
+            </footer>
+          </section>
 
-          <footer class="github-rising-footer">
-            <a id="github-search-link" href="https://github.com/search" rel="noreferrer">
-              <span id="github-search-label">View all</span>
-              <svg aria-hidden="true"><use href="assets/icons.svg#arrow-up-right"></use></svg>
-            </a>
-          </footer>
+          <section class="widget-pane widget-pane-data" id="widget-pane-hackernews" data-widget-pane="hackernews" role="tabpanel" aria-labelledby="widget-tab-hackernews" hidden>
+            <header class="widget-pane-heading">
+              <div>
+                <span class="widget-kicker">READ / 02</span>
+                <h2 id="hackernews-title">Hacker News</h2>
+              </div>
+            </header>
+            <ol class="hackernews-list" id="hackernews-list" aria-live="polite"></ol>
+            <footer class="widget-pane-footer">
+              <a id="hackernews-search-link" href="https://news.ycombinator.com/" rel="noreferrer">
+                <span id="hackernews-search-label">Open Hacker News</span>
+                <svg aria-hidden="true"><use href="assets/icons.svg#arrow-up-right"></use></svg>
+              </a>
+            </footer>
+          </section>
+
+          <section class="widget-pane focus-pane" id="widget-pane-focus" data-widget-pane="focus" role="tabpanel" aria-labelledby="widget-tab-focus" hidden>
+            <header class="widget-pane-heading">
+              <div>
+                <span class="widget-kicker">FOCUS / 03</span>
+                <h2 id="focus-title">Focus session</h2>
+              </div>
+            </header>
+            <div class="focus-body">
+              <div class="focus-mode-tabs" role="group" aria-label="Focus mode">
+                <button class="focus-mode is-active" data-focus-duration="25" type="button">25 min</button>
+                <button class="focus-mode" data-focus-duration="5" type="button">5 min</button>
+              </div>
+              <div class="focus-time" id="focus-time" aria-live="polite">25:00</div>
+              <div class="focus-progress" aria-hidden="true"><span id="focus-progress-bar"></span></div>
+              <div class="focus-actions">
+                <button class="primary-button focus-start-button" id="focus-start" type="button">
+                  <svg aria-hidden="true"><use href="assets/icons.svg#play"></use></svg>
+                  <span id="focus-start-label">Start</span>
+                </button>
+                <button class="tool-button focus-reset-button" id="focus-reset" type="button" aria-label="Reset timer" title="Reset timer">
+                  <svg aria-hidden="true"><use href="assets/icons.svg#rotate-ccw"></use></svg>
+                </button>
+              </div>
+              <div class="focus-sessions" aria-label="Completed focus sessions">
+                <span></span><span></span><span></span><span></span>
+              </div>
+            </div>
+          </section>
         </aside>
+
+        <button class="widget-expand-button" id="widget-expand" type="button" aria-label="Open widgets" title="Open widgets">
+          <svg aria-hidden="true"><use href="assets/icons.svg#panel-right-open"></use></svg>
+        </button>
       </main>
 
     </div>
@@ -125,6 +197,20 @@
             <span><svg aria-hidden="true"><use href="assets/icons.svg#star"></use></svg><b data-stat="stars"></b></span>
             <span><svg aria-hidden="true"><use href="assets/icons.svg#git-fork"></use></svg><b data-stat="forks"></b></span>
           </div>
+        </a>
+      </li>
+    </template>
+
+    <template id="hackernews-item-template">
+      <li class="hackernews-item">
+        <a rel="noreferrer">
+          <div class="hackernews-item-top">
+            <span class="hackernews-rank"></span>
+            <span class="hackernews-meta"></span>
+            <svg aria-hidden="true"><use href="assets/icons.svg#arrow-up-right"></use></svg>
+          </div>
+          <h3></h3>
+          <p></p>
         </a>
       </li>
     </template>
