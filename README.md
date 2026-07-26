@@ -72,17 +72,23 @@ newtab.html            页面语义结构
 styles.css             全屏导航页视觉和响应式布局
 app.js                 搜索、快捷入口、组件数据、计时器、设置和存储
 assets/icons.svg       Lucide 图标精简集合
+assets/extension/      Chrome / Edge 扩展图标
 assets/logos/          Blog、SurferGarage 和 GitHub 官方 logo
 scripts/validate.mjs   零依赖项目校验
+store/                 Chrome Web Store 文案与提交素材
 ```
 
 ## 隐私与权限
 
 插件申请 `storage` 权限，并仅对 GitHub API 和 Hacker News Firebase API 申请网络访问，用于读取公开项目与新闻数据。它不读取浏览历史、不注入其他网页、不发送分析数据，也不加载远程脚本。搜索内容只会在提交后发送到你选择的搜索目标。
 
+完整说明见 [Privacy Policy](PRIVACY.md)。
+
 ## 发布
 
-GitHub Release 是当前公开分发方式，发布包可以按照上面的步骤长期加载并每天使用。Chrome Web Store 和 Microsoft Edge Add-ons 上架是另一条发布渠道，需要各自的开发者账号、商店图标、截图和审核流程；本仓库的 GitHub Release 不代表已经通过浏览器商店审核。
+Chrome Web Store 的字段文案、权限说明、截图尺寸和上传清单见 [store/STORE_LISTING.md](store/STORE_LISTING.md)。执行 `scripts/build-store-assets.ps1` 可以重新生成扩展图标和商店素材。
+
+GitHub Release 仍可用于公开分发未上架版本。Chrome Web Store 和 Microsoft Edge Add-ons 均需要各自的开发者账号与审核；GitHub Release 不代表已经通过商店审核。
 
 仓库协作与 GitHub 成就路线见 [GITHUB_PLAYBOOK.md](GITHUB_PLAYBOOK.md)。
 
