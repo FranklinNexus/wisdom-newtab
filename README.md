@@ -1,58 +1,56 @@
 # Wisdom New Tab
 
-一个以 [WisdomEchoes](https://www.wisdomechoes.net/) 为视觉和内容基线的 Chrome / Edge 新标签页插件。它采用真正的浏览器导航页结构：中央 Google 搜索、官方站点 logo 快捷入口、轻量工具栏和可切换的实时组件侧栏。
+A Chrome / Edge new-tab extension inspired by [WisdomEchoes](https://www.wisdomechoes.net/). It is a practical browser home page: central Google search, official site-logo shortcuts, a quiet settings control, and one switchable live widget sidebar.
 
 ![Wisdom New Tab preview](assets/preview.png)
 
-## 功能
+## Features
 
-- 暖白纯色背景，不加载人物主视觉
-- 胶囊形 Google 搜索，输入网址时直接打开网址
-- `g`、`gh`、`yt`、`mdn`、`npm`、`wiki` 搜索前缀
-- Blog、SurferGarage 和 GitHub 官方 logo 快捷入口，按品牌轮廓自适应显示
-- 快捷入口可新增、编辑、删除、选择颜色，最多 10 个
-- 单一组件侧栏，可切换 GitHub Trending、Hacker News 和 25/5 分钟专注计时器
-- 侧栏可完全收起，收起后搜索区自动回到页面中心，并记住上次状态和组件
-- `GitHub Trending`：按最近 7 天新建仓库的 star 数排列，显示语言、简介、star 和 fork
-- `Hacker News`：显示当前热门技术讨论、分数、作者、时间和评论数
-- GitHub 榜单在标签页可见时每 10 分钟自动更新，重新切回标签页时会检查并补刷
-- 自动更新使用 GitHub Search API 轮询而非服务端推送；隐藏标签页暂停请求，离线或限流时继续使用最近一次结果
-- 中英文界面切换
-- Light / Dark 表面设置
-- 所有设置只保存在浏览器本地
+- A warm, plain surface with no decorative hero image.
+- A pill-shaped Google search field that opens typed URLs directly.
+- `g`, `gh`, `yt`, `mdn`, `npm`, and `wiki` search prefixes.
+- Adaptive official logo shortcuts for Blog, SurferGarage, and GitHub.
+- Up to ten local shortcuts with editable labels, URLs, and colors.
+- Press and hold any shortcut, or right-click it on desktop, to enter a restrained jiggle mode; use its X button to delete it, or click elsewhere to exit.
+- A single, collapsible widget sidebar for GitHub Trending, Hacker News, or a 25/5 focus timer.
+- A seven-day GitHub ranking with language, description, stars, and forks.
+- Current Hacker News stories with score, author, time, and comment count.
+- Ten-minute, visibility-aware public-data refreshes with cached offline fallback.
+- An immediate Light / Dark control with a persistent local preference.
+- Settings stored only in the browser.
 
-## 安装
+## Install
 
-先从 [GitHub Releases](https://github.com/FranklinNexus/wisdom-newtab/releases) 下载最新的 `wisdom-newtab-v*.zip`，解压到一个长期保留的文件夹。Chrome 和 Edge 不能直接加载 ZIP，需要选择解压后的文件夹。
+Download the latest `wisdom-newtab-v*.zip` from [GitHub Releases](https://github.com/FranklinNexus/wisdom-newtab/releases), then extract it to a permanent folder. Chrome and Edge load the extracted folder, not the ZIP itself.
 
 ### Chrome
 
-1. 打开 `chrome://extensions`。
-2. 打开右上角的「开发者模式」。
-3. 点击「加载已解压的扩展程序」。
-4. 选择解压后的 `wisdom-newtab` 文件夹。
-5. 新建一个标签页。
+1. Open `chrome://extensions`.
+2. Turn on **Developer mode**.
+3. Select **Load unpacked**.
+4. Choose the extracted `wisdom-newtab` folder.
+5. Open a new tab.
 
 ### Edge
 
-1. 打开 `edge://extensions`。
-2. 打开左侧的「开发人员模式」。
-3. 点击「加载解压缩的扩展」。
-4. 选择解压后的 `wisdom-newtab` 文件夹。
+1. Open `edge://extensions`.
+2. Turn on **Developer mode**.
+3. Select **Load unpacked**.
+4. Choose the extracted `wisdom-newtab` folder.
 
-修改代码后，在扩展管理页点击插件卡片上的刷新按钮，然后重新打开新标签页。
+After changing code, select **Reload** on the extension card and then open a new tab.
 
-## 本地预览
+## Local Preview
 
-插件没有构建步骤。任意静态服务器都可以预览：
+The extension has no build step. Preview it from any static server:
 
 ```powershell
 python -m http.server 4173 --bind 127.0.0.1
 ```
 
-打开 `http://127.0.0.1:4173/newtab.html`。普通网页预览会自动使用 `localStorage`；作为插件运行时会使用 `chrome.storage.local`。
+Open `http://127.0.0.1:4173/newtab.html`. The normal web preview uses `localStorage`; the extension uses `chrome.storage.local`.
 
-## 搜索前缀
+## Search Prefixes
 
 ```text
 gh new tab extension   -> GitHub repositories and code
@@ -62,38 +60,36 @@ yt browser extension  -> YouTube
 wiki new tab page      -> Wikipedia
 ```
 
-不加前缀时使用 Google。按 `/` 或 `Ctrl/Cmd + K` 可以聚焦搜索框。
+Google is used without a prefix. Press `/` or `Ctrl/Cmd + K` to focus search.
 
-## 项目结构
+## Project Structure
 
 ```text
-manifest.json          Manifest V3 配置和新标签页覆盖
-newtab.html            页面语义结构
-styles.css             全屏导航页视觉和响应式布局
-app.js                 搜索、快捷入口、组件数据、计时器、设置和存储
-assets/icons.svg       Lucide 图标精简集合
-assets/extension/      Chrome / Edge 扩展图标
-assets/logos/          Blog、SurferGarage 和 GitHub 官方 logo
-scripts/validate.mjs   零依赖项目校验
-store/                 Chrome Web Store 文案与提交素材
+manifest.json          Manifest V3 configuration and new-tab override
+newtab.html            Semantic page structure
+styles.css             Full-screen visual system and responsive layout
+app.js                 Search, shortcuts, widgets, timer, settings, and storage
+assets/icons.svg       Trimmed Lucide icon set
+assets/extension/      Chrome / Edge extension icons
+assets/logos/          Official Blog, SurferGarage, and GitHub logos
+scripts/validate.mjs   Zero-dependency project validation
+store/                 Chrome Web Store copy and submission assets
 ```
 
-## 隐私与权限
+## Privacy and Permissions
 
-插件申请 `storage` 权限，并仅对 GitHub API 和 Hacker News Firebase API 申请网络访问，用于读取公开项目与新闻数据。它不读取浏览历史、不注入其他网页、不发送分析数据，也不加载远程脚本。搜索内容只会在提交后发送到你选择的搜索目标。
+The extension requests `storage` plus network access only to the GitHub API and Hacker News Firebase API for public project and story data. It does not read browsing history, inject scripts into other sites, send analytics, or load remote code. Search text is sent only to the selected destination after submission.
 
-完整说明见 [Privacy Policy](PRIVACY.md)。
+See [Privacy Policy](PRIVACY.md) for the complete policy.
 
-## 发布
+## Release
 
-Chrome Web Store 的字段文案、权限说明、截图尺寸和上传清单见 [store/STORE_LISTING.md](store/STORE_LISTING.md)。执行 `scripts/build-store-assets.ps1` 可以重新生成扩展图标和商店素材。
+Chrome Web Store fields, permission explanations, screenshot sizes, and an upload checklist are in [store/STORE_LISTING.md](store/STORE_LISTING.md). Run `scripts/build-store-assets.ps1` to regenerate the extension icons and store assets.
 
-GitHub Release 仍可用于公开分发未上架版本。Chrome Web Store 和 Microsoft Edge Add-ons 均需要各自的开发者账号与审核；GitHub Release 不代表已经通过商店审核。
+GitHub Releases can distribute versions before store approval. The Chrome Web Store and Microsoft Edge Add-ons each require their own developer account and review; a GitHub Release is not store approval.
 
-仓库协作与 GitHub 成就路线见 [GITHUB_PLAYBOOK.md](GITHUB_PLAYBOOK.md)。
-
-版本变化见 [CHANGELOG.md](CHANGELOG.md)。
+The repository collaboration and GitHub-achievement guidance lives in [GITHUB_PLAYBOOK.md](GITHUB_PLAYBOOK.md). See [CHANGELOG.md](CHANGELOG.md) for version history.
 
 ## License
 
-[MIT](LICENSE)。图标来自 [Lucide](https://lucide.dev/)，使用 ISC License。
+[MIT](LICENSE). Icons are from [Lucide](https://lucide.dev/) under the ISC License.

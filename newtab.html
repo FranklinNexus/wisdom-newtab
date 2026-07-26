@@ -11,13 +11,6 @@
     <div class="app-shell">
       <header class="topbar">
         <div class="topbar-right">
-          <button class="language-button" id="language-toggle" type="button" aria-label="Switch language" title="Switch language">
-            <svg aria-hidden="true"><use href="assets/icons.svg#languages"></use></svg>
-            <span id="language-label">中</span>
-          </button>
-          <button class="tool-button" id="shortcuts-edit" type="button" aria-label="Edit shortcuts" title="Edit shortcuts">
-            <svg aria-hidden="true"><use href="assets/icons.svg#pencil"></use></svg>
-          </button>
           <button class="tool-button" id="settings-open" type="button" aria-label="Open settings" title="Settings">
             <svg aria-hidden="true"><use href="assets/icons.svg#settings"></use></svg>
           </button>
@@ -36,6 +29,7 @@
           </form>
 
           <div class="shortcut-grid" id="shortcut-grid" aria-label="Shortcuts"></div>
+          <p class="sr-only" id="shortcut-status" aria-live="polite"></p>
         </section>
 
         <aside class="widget-sidebar" id="widget-sidebar" aria-label="Widgets">
@@ -149,7 +143,8 @@
 
             <fieldset class="choice-fieldset">
               <legend>Surface</legend>
-              <div class="segmented-control">
+              <div class="segmented-control" id="surface-control">
+                <span class="segmented-indicator" aria-hidden="true"></span>
                 <label><input type="radio" name="surface" value="light" /><span>Light</span></label>
                 <label><input type="radio" name="surface" value="dark" /><span>Dark</span></label>
               </div>
@@ -177,10 +172,15 @@
     </dialog>
 
     <template id="shortcut-template">
-      <a class="shortcut" rel="noreferrer">
-        <span class="shortcut-icon"><img class="shortcut-logo" alt="" hidden /><b></b></span>
-        <span class="shortcut-label"></span>
-      </a>
+      <div class="shortcut-item">
+        <a class="shortcut" rel="noreferrer" draggable="false">
+          <span class="shortcut-icon"><img class="shortcut-logo" alt="" draggable="false" hidden /><b></b></span>
+          <span class="shortcut-label"></span>
+        </a>
+        <button class="shortcut-delete" type="button" tabindex="-1" aria-hidden="true">
+          <svg aria-hidden="true"><use href="assets/icons.svg#x"></use></svg>
+        </button>
+      </div>
     </template>
 
     <template id="github-repo-template">

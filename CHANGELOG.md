@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.7.0 - 2026-07-27
+
+- Removed the language switcher and shortcut edit button; the interface is now English-only.
+- Rebuilt the Light / Dark preference as an immediate sliding segmented control with a reduced-motion-safe theme reveal.
+- Added long-press and right-click shortcut editing with an Apple-style jiggle state, visible delete controls, persistent deletion, and click-away dismissal.
+
 ## 0.6.1 - 2026-07-27
 
 - Added complete Chrome extension icon sizes and store-ready manifest metadata.
