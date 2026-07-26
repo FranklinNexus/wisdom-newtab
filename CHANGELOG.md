@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.5.0 - 2026-07-26
+
+- Rewrote the GitHub widget heading to clearly describe its seven-day trending view.
+- Added detailed loading, success, error, and reduced-motion feedback to the refresh control.
+- Added localized live-status copy and a compact sync indicator.
+- Added ten-minute auto-sync while the tab is visible, visibility-aware catch-up, and online recovery.
+- Deduplicated overlapping automatic and manual GitHub requests while preserving offline cache fallback.
+
 ## 0.4.1 - 2026-07-26
 
 - Removed the greeting, network indicator, and bottom status bar.
