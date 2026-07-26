@@ -8,14 +8,17 @@ const brandLogos = [
   { id: "github", match: /github\.com/i, src: "assets/logos/github.svg" }
 ];
 
+const shortcutLabelMigrations = {
+  wisdomechoes: { from: "WisdomEchoes", to: "Blog" },
+  langqian: { from: "浪前", to: "SurferGarage" }
+};
+
 const defaultSettings = {
-  name: "Franklin",
   locale: "en",
   surface: "light",
-  showStatus: true,
   shortcuts: [
-    { id: "wisdomechoes", label: "WisdomEchoes", url: "https://www.wisdomechoes.net/", color: "#29282c" },
-    { id: "langqian", label: "浪前", url: "https://www.lang-qian.com/", color: "#ef4f35" },
+    { id: "wisdomechoes", label: "Blog", url: "https://www.wisdomechoes.net/", color: "#29282c" },
+    { id: "langqian", label: "SurferGarage", url: "https://www.lang-qian.com/", color: "#ef4f35" },
     { id: "github", label: "GitHub", url: "https://github.com/kfr34", color: "#171717" }
   ]
 };
@@ -23,23 +26,11 @@ const defaultSettings = {
 const copy = {
   en: {
     search: "Search Google",
-    add: "Add",
-    online: "ONLINE",
-    offline: "OFFLINE",
-    morning: "GOOD MORNING",
-    afternoon: "GOOD AFTERNOON",
-    evening: "GOOD EVENING",
-    awake: "STILL AWAKE"
+    add: "Add"
   },
   zh: {
     search: "用 Google 搜索",
-    add: "添加",
-    online: "在线",
-    offline: "离线",
-    morning: "早上好",
-    afternoon: "下午好",
-    evening: "晚上好",
-    awake: "还没睡"
+    add: "添加"
   }
 };
 
@@ -67,30 +58,21 @@ const storage = {
 };
 
 const elements = {
-  clock: document.querySelector("#clock"),
-  dateLabel: document.querySelector("#date-label"),
-  greeting: document.querySelector("#greeting"),
   githubList: document.querySelector("#github-list"),
   githubRefresh: document.querySelector("#github-refresh"),
   githubRepoTemplate: document.querySelector("#github-repo-template"),
   githubSearchLink: document.querySelector("#github-search-link"),
   githubUpdated: document.querySelector("#github-updated"),
   languageLabel: document.querySelector("#language-label"),
-  networkDot: document.querySelector("#network-dot"),
-  networkLabel: document.querySelector("#network-label"),
   searchForm: document.querySelector("#search-form"),
   searchInput: document.querySelector("#search-input"),
   settingsDialog: document.querySelector("#settings-dialog"),
   settingsForm: document.querySelector("#settings-form"),
-  settingsName: document.querySelector("#settings-name"),
   shortcutEditor: document.querySelector("#shortcut-editor"),
   shortcutEditorTemplate: document.querySelector("#shortcut-editor-template"),
   shortcutGrid: document.querySelector("#shortcut-grid"),
   shortcutSettings: document.querySelector("#shortcut-settings"),
-  shortcutTemplate: document.querySelector("#shortcut-template"),
-  statusToggle: document.querySelector("#status-toggle"),
-  statusbar: document.querySelector(".statusbar"),
-  timezoneLabel: document.querySelector("#timezone-label")
+  shortcutTemplate: document.querySelector("#shortcut-template")
 };
 
 let settings = structuredClone(defaultSettings);
@@ -116,19 +98,22 @@ function sanitizeSettings(candidate) {
   const legacyLinks = Array.isArray(value.links) ? value.links : [];
   const rawShortcuts = Array.isArray(value.shortcuts) ? value.shortcuts : legacyLinks;
   const shortcuts = rawShortcuts.length
-    ? rawShortcuts.slice(0, 10).map((item, index) => ({
-        id: String(item.id || `shortcut-${Date.now()}-${index}`),
-        label: String(item.label || "Untitled").slice(0, 28),
-        url: normalizeUrl(item.url),
-        color: safeColor(item.color, ["#29282c", "#ef4f35", "#171717", "#3d5c91"][index % 4])
-      })).filter((item) => item.label)
+    ? rawShortcuts.slice(0, 10).map((item, index) => {
+        const id = String(item.id || `shortcut-${Date.now()}-${index}`);
+        const rawLabel = String(item.label || "Untitled").slice(0, 28);
+        const labelMigration = shortcutLabelMigrations[id];
+        return {
+          id,
+          label: labelMigration?.from === rawLabel ? labelMigration.to : rawLabel,
+          url: normalizeUrl(item.url),
+          color: safeColor(item.color, ["#29282c", "#ef4f35", "#171717", "#3d5c91"][index % 4])
+        };
+      }).filter((item) => item.label)
     : structuredClone(defaultSettings.shortcuts);
 
   return {
-    name: String(value.name || defaultSettings.name).slice(0, 32),
     locale: ["en", "zh"].includes(value.locale) ? value.locale : "en",
     surface: ["light", "dark"].includes(value.surface) ? value.surface : "light",
-    showStatus: value.showStatus !== false,
     shortcuts
   };
 }
@@ -283,17 +268,12 @@ async function loadGitHubRising(force = false) {
 
 function applySettings() {
   document.documentElement.dataset.surface = settings.surface;
-  elements.statusbar.classList.toggle("is-hidden", !settings.showStatus);
   elements.languageLabel.textContent = settings.locale === "en" ? "中" : "EN";
   elements.searchInput.placeholder = copy[settings.locale].search;
   renderShortcuts();
-  updateClock();
-  updateNetwork();
 }
 
 function renderSettings() {
-  elements.settingsName.value = settings.name;
-  elements.statusToggle.checked = settings.showStatus;
   const surfaceChoice = elements.settingsForm.querySelector(`input[name="surface"][value="${settings.surface}"]`);
   if (surfaceChoice) surfaceChoice.checked = true;
 
@@ -335,35 +315,6 @@ function closeOnBackdrop(dialog, event) {
   if (event.target === dialog) dialog.close();
 }
 
-function greetingForHour(hour) {
-  const language = copy[settings.locale];
-  if (hour < 5) return language.awake;
-  if (hour < 12) return language.morning;
-  if (hour < 18) return language.afternoon;
-  return language.evening;
-}
-
-function updateClock() {
-  const now = new Date();
-  const hours = String(now.getHours()).padStart(2, "0");
-  const minutes = String(now.getMinutes()).padStart(2, "0");
-  elements.clock.textContent = `${hours}:${minutes}`;
-  elements.clock.dateTime = now.toISOString();
-  elements.greeting.textContent = `${greetingForHour(now.getHours())}, ${settings.name.toUpperCase()}`;
-  elements.dateLabel.textContent = new Intl.DateTimeFormat("en", { weekday: "short", month: "short", day: "2-digit" })
-    .format(now)
-    .replaceAll(",", "")
-    .replaceAll(" ", " / ")
-    .toUpperCase();
-  const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || "LOCAL";
-  elements.timezoneLabel.textContent = timezone.replace("/", " / ").replaceAll("_", " ").toUpperCase();
-}
-
-function updateNetwork() {
-  elements.networkLabel.textContent = navigator.onLine ? copy[settings.locale].online : copy[settings.locale].offline;
-  elements.networkDot.classList.toggle("is-offline", !navigator.onLine);
-}
-
 function searchTarget(rawQuery) {
   const value = rawQuery.trim();
   const commandMatch = value.match(/^(g|gh|yt|mdn|npm|wiki)\s+(.+)$/i);
@@ -384,9 +335,9 @@ function searchTarget(rawQuery) {
 
 async function initialize() {
   settings = sanitizeSettings(await storage.get(STORAGE_KEY, defaultSettings));
+  await storage.set(STORAGE_KEY, settings);
   applySettings();
   loadGitHubRising();
-  setInterval(updateClock, 1000);
 }
 
 elements.searchForm.addEventListener("submit", (event) => {
@@ -412,9 +363,7 @@ elements.settingsForm.addEventListener("submit", async (event) => {
   event.preventDefault();
   settings = sanitizeSettings({
     ...settings,
-    name: elements.settingsName.value,
     surface: new FormData(elements.settingsForm).get("surface"),
-    showStatus: elements.statusToggle.checked,
     shortcuts: collectShortcuts()
   });
   await storage.set(STORAGE_KEY, settings);
@@ -437,8 +386,5 @@ document.addEventListener("keydown", (event) => {
     elements.searchInput.select();
   }
 });
-
-window.addEventListener("online", updateNetwork);
-window.addEventListener("offline", updateNetwork);
 
 initialize();

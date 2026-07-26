@@ -32,11 +32,6 @@
 
       <main class="home-stage">
         <section class="command-center" aria-label="Search and shortcuts">
-          <div class="ambient-line">
-            <span id="greeting">GOOD EVENING, FRANKLIN</span>
-            <span><i id="network-dot" aria-hidden="true"></i><span id="network-label">ONLINE</span></span>
-          </div>
-
           <form class="search-bar" id="search-form" role="search">
             <svg class="search-icon" aria-hidden="true"><use href="assets/icons.svg#search"></use></svg>
             <label class="sr-only" for="search-input">Search Google</label>
@@ -72,13 +67,6 @@
         </aside>
       </main>
 
-      <footer class="statusbar">
-        <time id="clock" datetime="">00:00</time>
-        <span id="date-label">SUN / JUL 26</span>
-        <span class="status-spacer"></span>
-        <span id="timezone-label">ASIA / SHANGHAI</span>
-        <span>LOCAL / PRIVATE</span>
-      </footer>
     </div>
 
     <dialog class="side-panel side-panel-right" id="settings-dialog" aria-labelledby="settings-title">
@@ -94,16 +82,8 @@
         </header>
 
         <div class="panel-scroll settings-scroll">
-          <section class="settings-section" aria-labelledby="identity-title">
-            <div class="section-label"><span>01</span><h3 id="identity-title">identity</h3></div>
-            <label class="field">
-              <span>Name</span>
-              <input id="settings-name" maxlength="32" autocomplete="name" />
-            </label>
-          </section>
-
           <section class="settings-section" aria-labelledby="appearance-title">
-            <div class="section-label"><span>02</span><h3 id="appearance-title">appearance</h3></div>
+            <div class="section-label"><span>01</span><h3 id="appearance-title">appearance</h3></div>
 
             <fieldset class="choice-fieldset">
               <legend>Surface</legend>
@@ -112,16 +92,10 @@
                 <label><input type="radio" name="surface" value="dark" /><span>Dark</span></label>
               </div>
             </fieldset>
-
-            <label class="toggle-field">
-              <span>Show status bar</span>
-              <input id="status-toggle" type="checkbox" />
-              <i aria-hidden="true"></i>
-            </label>
           </section>
 
           <section class="settings-section" id="shortcut-settings" aria-labelledby="shortcuts-title">
-            <div class="section-label"><span>03</span><h3 id="shortcuts-title">shortcuts</h3></div>
+            <div class="section-label"><span>02</span><h3 id="shortcuts-title">shortcuts</h3></div>
             <div class="shortcut-editor" id="shortcut-editor"></div>
             <button class="secondary-button" id="shortcut-add" type="button">
               <svg aria-hidden="true"><use href="assets/icons.svg#plus"></use></svg>
