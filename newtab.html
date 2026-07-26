@@ -47,10 +47,10 @@
         <aside class="github-rising" aria-labelledby="github-rising-title">
           <header class="github-rising-header">
             <div>
-              <p class="eyebrow">GITHUB / LAST 7 DAYS</p>
-              <h2 id="github-rising-title">rising repositories</h2>
+              <p class="eyebrow" id="github-window-label">NEW REPOSITORIES / 7 DAYS</p>
+              <h2 id="github-rising-title">Trending on GitHub</h2>
             </div>
-            <button class="tool-button" id="github-refresh" type="button" aria-label="Refresh GitHub ranking" title="Refresh ranking">
+            <button class="tool-button github-refresh-button" id="github-refresh" type="button" aria-label="Refresh GitHub trends" title="Refresh GitHub trends">
               <svg aria-hidden="true"><use href="assets/icons.svg#refresh"></use></svg>
             </button>
           </header>
@@ -58,9 +58,12 @@
           <ol class="github-list" id="github-list" aria-live="polite"></ol>
 
           <footer class="github-rising-footer">
-            <span id="github-updated">SYNCING</span>
+            <span class="github-sync-status" id="github-sync-status" data-state="loading">
+              <span class="github-status-dot" aria-hidden="true"></span>
+              <span id="github-updated">Updating...</span>
+            </span>
             <a id="github-search-link" href="https://github.com/search" rel="noreferrer">
-              OPEN SEARCH
+              <span id="github-search-label">View all</span>
               <svg aria-hidden="true"><use href="assets/icons.svg#arrow-up-right"></use></svg>
             </a>
           </footer>
