@@ -9,10 +9,11 @@
 - 暖白纯色背景，不加载人物主视觉
 - 胶囊形 Google 搜索，输入网址时直接打开网址
 - `g`、`gh`、`yt`、`mdn`、`npm`、`wiki` 搜索前缀
-- WisdomEchoes、浪前和 GitHub 官方 logo 快捷入口，按品牌轮廓自适应显示
+- Blog、SurferGarage 和 GitHub 官方 logo 快捷入口，按品牌轮廓自适应显示
 - 快捷入口可新增、编辑、删除、选择颜色，最多 10 个
 - `GitHub Rising`：按最近 7 天新建仓库的 star 数排列，显示语言、简介、star 和 fork
-- GitHub 数据缓存一小时，离线或限流时继续使用最近一次结果
+- GitHub 榜单在标签页可见时每 10 分钟自动更新，重新切回标签页时会检查并补刷
+- 自动更新使用 GitHub Search API 轮询而非服务端推送；隐藏标签页暂停请求，离线或限流时继续使用最近一次结果
 - 中英文界面切换
 - Light / Dark 表面设置
 - 所有设置只保存在浏览器本地
@@ -68,7 +69,7 @@ newtab.html            页面语义结构
 styles.css             全屏导航页视觉和响应式布局
 app.js                 搜索、快捷入口、GitHub 榜单、设置和存储
 assets/icons.svg       Lucide 图标精简集合
-assets/logos/          WisdomEchoes、浪前和 GitHub 官方 logo
+assets/logos/          Blog、SurferGarage 和 GitHub 官方 logo
 scripts/validate.mjs   零依赖项目校验
 ```
 

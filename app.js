@@ -1,6 +1,8 @@
 const STORAGE_KEY = "wisdomNewtabSettingsV3";
 const GITHUB_CACHE_KEY = "wisdomGithubRisingV1";
-const GITHUB_CACHE_TTL = 60 * 60 * 1000;
+const GITHUB_REFRESH_INTERVAL = 10 * 60 * 1000;
+const GITHUB_RETRY_INTERVAL = 2 * 60 * 1000;
+const GITHUB_CACHE_TTL = GITHUB_REFRESH_INTERVAL;
 
 const brandLogos = [
   { id: "wisdomechoes", match: /wisdomechoes\.net/i, src: "assets/logos/wisdomechoes.png" },
@@ -31,10 +33,16 @@ const copy = {
     githubTitle: "Trending on GitHub",
     githubViewAll: "View all",
     githubUpdating: "Updating...",
-    githubUpdated: "Updated",
-    githubCached: "Last updated",
+    githubUpdated: "Auto-sync · just now",
+    githubCached: "Auto-sync",
+    githubOffline: "Offline",
     githubUnavailable: "Update unavailable",
-    githubRefresh: "Refresh GitHub trends"
+    githubEmpty: "GitHub trends unavailable",
+    githubLoading: "Loading GitHub trends...",
+    githubNoDescription: "No description yet.",
+    githubRetry: "Retry",
+    githubRefresh: "Refresh GitHub trends",
+    githubAutoHint: "Refreshes every 10 minutes while this tab is visible"
   },
   zh: {
     search: "用 Google 搜索",
@@ -43,10 +51,16 @@ const copy = {
     githubTitle: "GitHub 热门趋势",
     githubViewAll: "查看全部",
     githubUpdating: "正在更新...",
-    githubUpdated: "刚刚更新",
-    githubCached: "上次更新",
+    githubUpdated: "自动同步 · 刚刚",
+    githubCached: "自动同步",
+    githubOffline: "离线",
     githubUnavailable: "暂时无法更新",
-    githubRefresh: "刷新 GitHub 趋势"
+    githubEmpty: "GitHub 趋势暂时不可用",
+    githubLoading: "正在载入 GitHub 趋势...",
+    githubNoDescription: "暂无简介。",
+    githubRetry: "重试",
+    githubRefresh: "刷新 GitHub 趋势",
+    githubAutoHint: "此标签页可见时每 10 分钟自动更新"
   }
 };
 
@@ -97,6 +111,11 @@ const elements = {
 
 let settings = structuredClone(defaultSettings);
 let refreshFeedbackTimer;
+let githubRefreshTimer;
+let githubRefreshRequest;
+let githubLastFetchedAt = 0;
+let githubLastAttemptAt = 0;
+let githubRepositories = [];
 
 function normalizeUrl(value) {
   const trimmed = String(value || "").trim();
@@ -215,6 +234,7 @@ function setRefreshState(state) {
 }
 
 function renderGitHubState(message, retry = false) {
+  githubRepositories = [];
   elements.githubList.replaceChildren();
   const item = document.createElement("li");
   item.className = "github-state";
@@ -226,7 +246,7 @@ function renderGitHubState(message, retry = false) {
     const button = document.createElement("button");
     button.type = "button";
     button.className = "secondary-button";
-    button.textContent = "Retry";
+    button.textContent = copy[settings.locale].githubRetry;
     button.addEventListener("click", () => loadGitHubRising(true));
     item.append(button);
   }
@@ -235,6 +255,7 @@ function renderGitHubState(message, retry = false) {
 }
 
 function renderGitHubRepos(repositories) {
+  githubRepositories = repositories;
   elements.githubList.replaceChildren();
   repositories.forEach((repository, index) => {
     const item = elements.githubRepoTemplate.content.firstElementChild.cloneNode(true);
@@ -243,7 +264,7 @@ function renderGitHubRepos(repositories) {
     item.querySelector(".github-rank").textContent = String(index + 1).padStart(2, "0");
     item.querySelector(".github-language").textContent = (repository.language || "OTHER").toUpperCase();
     item.querySelector("h3").textContent = repository.name;
-    item.querySelector("p").textContent = repository.description || "No description provided.";
+    item.querySelector("p").textContent = repository.description || copy[settings.locale].githubNoDescription;
     item.querySelector('[data-stat="stars"]').textContent = formatCompactNumber(repository.stars);
     item.querySelector('[data-stat="forks"]').textContent = formatCompactNumber(repository.forks);
     elements.githubList.append(item);
@@ -255,7 +276,35 @@ function cacheLabel(timestamp, prefix) {
   return `${prefix} · ${time}`;
 }
 
-async function loadGitHubRising(force = false) {
+function localizeGitHubStatus() {
+  const state = elements.githubStatus.dataset.state;
+  if (state === "loading") {
+    setGitHubStatus("loading", copy[settings.locale].githubUpdating);
+  } else if (state === "error") {
+    setGitHubStatus("error", copy[settings.locale].githubUnavailable);
+  } else if (githubLastFetchedAt) {
+    setGitHubStatus(state, cacheLabel(githubLastFetchedAt, copy[settings.locale].githubCached));
+  }
+}
+
+function nextGitHubRefreshDelay(now = Date.now()) {
+  const nextRegularRefresh = githubLastFetchedAt
+    ? githubLastFetchedAt + GITHUB_REFRESH_INTERVAL
+    : now + GITHUB_REFRESH_INTERVAL;
+  const nextRetry = githubLastAttemptAt ? githubLastAttemptAt + GITHUB_RETRY_INTERVAL : 0;
+  return Math.max(1000, Math.max(nextRegularRefresh, nextRetry) - now);
+}
+
+function scheduleGitHubRefresh() {
+  clearTimeout(githubRefreshTimer);
+  if (document.hidden) return;
+
+  githubRefreshTimer = setTimeout(() => {
+    loadGitHubRising(false);
+  }, nextGitHubRefreshDelay());
+}
+
+async function syncGitHubRising(force = false) {
   const cached = await storage.get(GITHUB_CACHE_KEY, null);
   const hasCachedItems = Array.isArray(cached?.items) && cached.items.length > 0;
   const cacheIsFresh = hasCachedItems && Date.now() - Number(cached.fetchedAt) < GITHUB_CACHE_TTL;
@@ -263,18 +312,30 @@ async function loadGitHubRising(force = false) {
   elements.githubSearchLink.href = `https://github.com/search?q=${encodeURIComponent(query)}&type=repositories&s=stars&o=desc`;
 
   if (hasCachedItems) {
+    githubLastFetchedAt = Number(cached.fetchedAt) || 0;
     renderGitHubRepos(cached.items);
     setGitHubStatus(cacheIsFresh ? "live" : "stale", cacheLabel(cached.fetchedAt, copy[settings.locale].githubCached));
   } else {
-    renderGitHubState("SYNCING GITHUB");
+    renderGitHubState(copy[settings.locale].githubLoading);
     setGitHubStatus("loading", copy[settings.locale].githubUpdating);
   }
 
   if (!force && cacheIsFresh) return;
-  if (!navigator.onLine && hasCachedItems) return;
+  if (!navigator.onLine) {
+    githubLastAttemptAt = Date.now();
+    if (force) setRefreshState("error");
+    if (!hasCachedItems) {
+      renderGitHubState(copy[settings.locale].githubEmpty, true);
+      setGitHubStatus("error", copy[settings.locale].githubUnavailable);
+    } else {
+      setGitHubStatus("stale", cacheLabel(cached.fetchedAt, copy[settings.locale].githubOffline));
+    }
+    return;
+  }
 
   const apiUrl = new URL("https://api.github.com/search/repositories");
   apiUrl.search = new URLSearchParams({ q: query, sort: "stars", order: "desc", per_page: "5" }).toString();
+  githubLastAttemptAt = Date.now();
   setRefreshState("loading");
   setGitHubStatus("loading", copy[settings.locale].githubUpdating);
 
@@ -294,18 +355,29 @@ async function loadGitHubRising(force = false) {
 
     const cache = { fetchedAt: Date.now(), items: repositories };
     await storage.set(GITHUB_CACHE_KEY, cache);
+    githubLastFetchedAt = cache.fetchedAt;
     renderGitHubRepos(repositories);
     setGitHubStatus("live", copy[settings.locale].githubUpdated);
     setRefreshState("success");
   } catch {
     setRefreshState("error");
     if (!hasCachedItems) {
-      renderGitHubState("GITHUB DATA UNAVAILABLE", true);
+      renderGitHubState(copy[settings.locale].githubEmpty, true);
       setGitHubStatus("error", copy[settings.locale].githubUnavailable);
     } else {
       setGitHubStatus("stale", cacheLabel(cached.fetchedAt, copy[settings.locale].githubCached));
     }
   }
+}
+
+function loadGitHubRising(force = false) {
+  if (githubRefreshRequest) return githubRefreshRequest;
+
+  githubRefreshRequest = syncGitHubRising(force).finally(() => {
+    githubRefreshRequest = null;
+    scheduleGitHubRefresh();
+  });
+  return githubRefreshRequest;
 }
 
 function applySettings() {
@@ -317,6 +389,10 @@ function applySettings() {
   elements.githubSearchLabel.textContent = copy[settings.locale].githubViewAll;
   elements.githubRefresh.setAttribute("aria-label", copy[settings.locale].githubRefresh);
   elements.githubRefresh.title = copy[settings.locale].githubRefresh;
+  elements.githubStatus.setAttribute("aria-label", copy[settings.locale].githubAutoHint);
+  elements.githubStatus.title = copy[settings.locale].githubAutoHint;
+  localizeGitHubStatus();
+  if (githubRepositories.length) renderGitHubRepos(githubRepositories);
   renderShortcuts();
 }
 
@@ -405,6 +481,18 @@ document.querySelector("#language-toggle").addEventListener("click", async () =>
 });
 
 elements.githubRefresh.addEventListener("click", () => loadGitHubRising(true));
+
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) {
+    clearTimeout(githubRefreshTimer);
+    return;
+  }
+  loadGitHubRising(false);
+});
+
+window.addEventListener("online", () => {
+  if (!document.hidden) loadGitHubRising(false);
+});
 
 elements.settingsForm.addEventListener("submit", async (event) => {
   event.preventDefault();
