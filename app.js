@@ -3,9 +3,9 @@ const GITHUB_CACHE_KEY = "wisdomGithubRisingV1";
 const GITHUB_CACHE_TTL = 60 * 60 * 1000;
 
 const brandLogos = [
-  { match: /wisdomechoes\.net/i, src: "assets/logos/wisdomechoes.png" },
-  { match: /lang-qian\.com/i, src: "assets/logos/langqian.png" },
-  { match: /github\.com/i, src: "assets/logos/github.svg" }
+  { id: "wisdomechoes", match: /wisdomechoes\.net/i, src: "assets/logos/wisdomechoes.png" },
+  { id: "langqian", match: /lang-qian\.com/i, src: "assets/logos/langqian.png" },
+  { id: "github", match: /github\.com/i, src: "assets/logos/github.svg" }
 ];
 
 const defaultSettings = {
@@ -76,9 +76,6 @@ const elements = {
   githubSearchLink: document.querySelector("#github-search-link"),
   githubUpdated: document.querySelector("#github-updated"),
   languageLabel: document.querySelector("#language-label"),
-  launcherDialog: document.querySelector("#launcher-dialog"),
-  launcherLinkTemplate: document.querySelector("#launcher-link-template"),
-  launcherLinks: document.querySelector("#launcher-links"),
   networkDot: document.querySelector("#network-dot"),
   networkLabel: document.querySelector("#network-label"),
   searchForm: document.querySelector("#search-form"),
@@ -144,7 +141,7 @@ function iconText(shortcut) {
 }
 
 function brandLogoFor(url) {
-  return brandLogos.find((logo) => logo.match.test(url))?.src || "";
+  return brandLogos.find((logo) => logo.match.test(url));
 }
 
 function renderShortcuts() {
@@ -154,12 +151,13 @@ function renderShortcuts() {
     const tile = elements.shortcutTemplate.content.firstElementChild.cloneNode(true);
     tile.href = shortcut.url;
     tile.style.setProperty("--shortcut-color", shortcut.color);
-    const logo = brandLogoFor(shortcut.url);
+    const brand = brandLogoFor(shortcut.url);
     const image = tile.querySelector(".shortcut-logo");
     const fallback = tile.querySelector(".shortcut-icon b");
-    if (logo) {
+    if (brand) {
       tile.classList.add("has-logo");
-      image.src = logo;
+      tile.dataset.brand = brand.id;
+      image.src = brand.src;
       image.hidden = false;
       fallback.hidden = true;
     } else {
@@ -179,25 +177,6 @@ function renderShortcuts() {
   `;
   add.addEventListener("click", () => openSettings(true));
   elements.shortcutGrid.append(add);
-}
-
-function renderLauncher() {
-  elements.launcherLinks.replaceChildren();
-  settings.shortcuts.forEach((shortcut) => {
-    const link = elements.launcherLinkTemplate.content.firstElementChild.cloneNode(true);
-    link.href = shortcut.url;
-    link.querySelector("span").textContent = shortcut.label;
-    link.querySelector("small").textContent = displayHost(shortcut.url);
-    elements.launcherLinks.append(link);
-  });
-}
-
-function displayHost(url) {
-  try {
-    return new URL(url).hostname.replace(/^www\./, "").toUpperCase();
-  } catch {
-    return "UNSET";
-  }
 }
 
 function githubQuery() {
@@ -308,7 +287,6 @@ function applySettings() {
   elements.languageLabel.textContent = settings.locale === "en" ? "中" : "EN";
   elements.searchInput.placeholder = copy[settings.locale].search;
   renderShortcuts();
-  renderLauncher();
   updateClock();
   updateNetwork();
 }
@@ -417,8 +395,6 @@ elements.searchForm.addEventListener("submit", (event) => {
   if (query) window.location.assign(searchTarget(query));
 });
 
-document.querySelector("#launcher-open").addEventListener("click", () => elements.launcherDialog.showModal());
-document.querySelector("#launcher-close").addEventListener("click", () => elements.launcherDialog.close());
 document.querySelector("#settings-open").addEventListener("click", () => openSettings(false));
 document.querySelector("#shortcuts-edit").addEventListener("click", () => openSettings(true));
 document.querySelector("#settings-close").addEventListener("click", () => elements.settingsDialog.close());
@@ -446,17 +422,16 @@ elements.settingsForm.addEventListener("submit", async (event) => {
   elements.settingsDialog.close();
 });
 
-elements.launcherDialog.addEventListener("click", (event) => closeOnBackdrop(elements.launcherDialog, event));
 elements.settingsDialog.addEventListener("click", (event) => closeOnBackdrop(elements.settingsDialog, event));
 
 document.addEventListener("keydown", (event) => {
   const activeTag = document.activeElement?.tagName;
   const isTyping = ["INPUT", "TEXTAREA", "SELECT"].includes(activeTag);
-  if (event.key === "/" && !isTyping && !elements.settingsDialog.open && !elements.launcherDialog.open) {
+  if (event.key === "/" && !isTyping && !elements.settingsDialog.open) {
     event.preventDefault();
     elements.searchInput.focus();
   }
-  if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k" && !elements.settingsDialog.open && !elements.launcherDialog.open) {
+  if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k" && !elements.settingsDialog.open) {
     event.preventDefault();
     elements.searchInput.focus();
     elements.searchInput.select();
