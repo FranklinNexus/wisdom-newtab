@@ -20,12 +20,14 @@
 
 ## 安装
 
+先从 [GitHub Releases](https://github.com/FranklinNexus/wisdom-newtab/releases) 下载最新的 `wisdom-newtab-v*.zip`，解压到一个长期保留的文件夹。Chrome 和 Edge 不能直接加载 ZIP，需要选择解压后的文件夹。
+
 ### Chrome
 
 1. 打开 `chrome://extensions`。
 2. 打开右上角的「开发者模式」。
 3. 点击「加载已解压的扩展程序」。
-4. 选择本项目文件夹 `wisdom-newtab`。
+4. 选择解压后的 `wisdom-newtab` 文件夹。
 5. 新建一个标签页。
 
 ### Edge
@@ -33,7 +35,7 @@
 1. 打开 `edge://extensions`。
 2. 打开左侧的「开发人员模式」。
 3. 点击「加载解压缩的扩展」。
-4. 选择本项目文件夹 `wisdom-newtab`。
+4. 选择解压后的 `wisdom-newtab` 文件夹。
 
 修改代码后，在扩展管理页点击插件卡片上的刷新按钮，然后重新打开新标签页。
 
@@ -77,9 +79,11 @@ scripts/validate.mjs   零依赖项目校验
 
 ## 发布
 
-首次发布前需要补一套 16、32、48、128 像素图标，并在 `manifest.json` 中声明 `icons`。然后压缩项目内容，在 Chrome Web Store Developer Dashboard 或 Microsoft Edge Add-ons 提交。商店发布需要开发者账号和截图；本地加载不需要。
+GitHub Release 是当前公开分发方式，发布包可以按照上面的步骤长期加载并每天使用。Chrome Web Store 和 Microsoft Edge Add-ons 上架是另一条发布渠道，需要各自的开发者账号、商店图标、截图和审核流程；本仓库的 GitHub Release 不代表已经通过浏览器商店审核。
 
 仓库协作与 GitHub 成就路线见 [GITHUB_PLAYBOOK.md](GITHUB_PLAYBOOK.md)。
+
+版本变化见 [CHANGELOG.md](CHANGELOG.md)。
 
 ## License
 
