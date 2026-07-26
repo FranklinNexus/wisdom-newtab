@@ -105,21 +105,14 @@ a {
 }
 
 .topbar {
-  justify-content: space-between;
+  justify-content: flex-end;
   border-bottom: 1px solid var(--line-soft);
 }
 
-.topbar-left,
 .topbar-right {
   display: flex;
   gap: 8px;
   align-items: center;
-}
-
-.wordmark {
-  font-size: 14px;
-  font-weight: 850;
-  text-decoration: none;
 }
 
 .tool-button,
@@ -387,10 +380,6 @@ button.shortcut {
   border-bottom: 1px solid var(--line-soft);
 }
 
-.github-rising-header .eyebrow {
-  margin-bottom: 5px;
-}
-
 .github-rising-header h2 {
   margin: 0;
   font-size: 18px;
@@ -579,43 +568,11 @@ button.shortcut {
 
 .github-rising-footer {
   min-height: 48px;
+  justify-content: flex-end;
   border-top: 1px solid var(--line-soft);
   color: var(--faint);
   font-family: var(--font-mono);
   font-size: 8px;
-}
-
-.github-sync-status {
-  display: inline-flex;
-  gap: 7px;
-  align-items: center;
-}
-
-.github-status-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: currentColor;
-  box-shadow: 0 0 0 3px color-mix(in srgb, currentColor 10%, transparent);
-}
-
-.github-sync-status[data-state="live"] {
-  color: #287a52;
-}
-
-.github-sync-status[data-state="loading"] .github-status-dot {
-  color: var(--accent);
-  animation: github-status-pulse 1.1s ease-in-out infinite;
-}
-
-.github-sync-status[data-state="stale"],
-.github-sync-status[data-state="error"] {
-  color: var(--accent);
-}
-
-@keyframes github-status-pulse {
-  0%, 100% { opacity: 0.42; transform: scale(0.82); }
-  50% { opacity: 1; transform: scale(1); }
 }
 
 .github-rising-footer a {
@@ -937,10 +894,6 @@ dialog::backdrop {
   .topbar {
     padding-right: 16px;
     padding-left: 16px;
-  }
-
-  .wordmark {
-    display: none;
   }
 
   .command-center {

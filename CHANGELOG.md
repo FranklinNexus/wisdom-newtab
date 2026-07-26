@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.5.1 - 2026-07-26
+
+- Removed the top-left WisdomEchoes wordmark.
+- Removed the GitHub widget time-window eyebrow and visible auto-sync status.
+- Realigned the top toolbar, GitHub header, and widget footer after the cleanup.
+- Kept visibility-aware GitHub auto-sync running without visible status chrome.
+
 ## 0.5.0 - 2026-07-26
 
 - Rewrote the GitHub widget heading to clearly describe its seven-day trending view.
