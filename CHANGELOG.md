@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.4.1 - 2026-07-26
+
+- Removed the greeting, network indicator, and bottom status bar.
+- Removed the now-unused identity and status-bar settings.
+- Renamed the default WisdomEchoes and Langqian shortcuts to Blog and SurferGarage.
+- Added a stored-settings migration that preserves custom shortcut labels.
+
 ## 0.4.0 - 2026-07-26
 
 - Removed the launcher panel and its duplicate navigation layer.
