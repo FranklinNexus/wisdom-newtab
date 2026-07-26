@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Wisdom New Tab",
-  "version": "0.6.1",
+  "version": "0.7.0",
   "description": "A calm new tab with search, developer shortcuts, live tech trends, and a focus timer.",
   "homepage_url": "https://github.com/FranklinNexus/wisdom-newtab",
   "icons": {

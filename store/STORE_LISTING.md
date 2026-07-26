@@ -1,6 +1,6 @@
 # Chrome Web Store Submission
 
-This file contains reviewer-ready text and the exact upload checklist for Wisdom New Tab 0.6.1.
+This file contains reviewer-ready text and the exact upload checklist for Wisdom New Tab 0.7.0.
 
 ## Product details
 
@@ -18,7 +18,7 @@ A calm new tab with search, developer shortcuts, live tech trends, and a focus t
 
 Category: `Productivity`
 
-Language: `English` as the default listing. Add a Simplified Chinese localization after the English listing is complete.
+Language: `English`
 
 Detailed description:
 
@@ -34,30 +34,10 @@ Highlights:
 - Public GitHub and Hacker News data
 - Local 25/5 focus timer
 - Collapsible single-widget sidebar
-- Light and dark surfaces
-- English and Simplified Chinese interface
+- Immediate Light / Dark surface switching
+- Press-and-hold shortcut editing with persistent deletion
 
 Privacy-first by design: settings stay in browser storage, there are no analytics or ads, and the extension does not read browsing history or inject scripts into websites.
-```
-
-Simplified Chinese description:
-
-```text
-Wisdom New Tab 将默认新标签页替换为一个安静、实用的开发者工作台。
-
-你可以直接使用 Google 搜索，也可以通过前缀快速搜索 GitHub、YouTube、MDN、npm 和 Wikipedia。常用网站可以保存为可编辑快捷入口。右侧只有一个可收起组件栏，可在 GitHub 热门项目、Hacker News 实时热点和本地 25/5 专注计时器之间切换。
-
-主要功能：
-- 安静、响应式的新标签页布局
-- 带开发者搜索前缀的 Google 搜索
-- 保存在本地的可编辑快捷入口
-- GitHub 与 Hacker News 公开实时数据
-- 本地 25/5 专注计时器
-- 可完全收起的单组件侧栏
-- 明暗表面设置
-- 中英文界面
-
-隐私优先：设置只保存在浏览器本地，不含分析与广告，不读取浏览历史，也不向其他网站注入脚本。
 ```
 
 ## Graphic assets
@@ -138,7 +118,8 @@ https://github.com/FranklinNexus/wisdom-newtab/blob/main/PRIVACY.md
 2. Submit a search to verify navigation to Google.
 3. Select the GitHub, Hacker News, and focus timer icons in the right sidebar; only one widget is visible at a time.
 4. Use the rightmost sidebar control to collapse the sidebar, then use the right-edge handle to reopen it.
-5. Open Settings or Edit shortcuts to verify values persist after opening another new tab.
+5. Open Settings to verify the Light / Dark preference persists after opening another new tab.
+6. Press and hold a shortcut until it jiggles; use its X button to delete it, then refresh to verify the deletion persists.
 
 No account, paid service, API key, or special test credential is required.
 ```
@@ -146,7 +127,7 @@ No account, paid service, API key, or special test credential is required.
 ## Submission order
 
 1. Register or open the Chrome Web Store developer account.
-2. Upload `wisdom-newtab-chrome-v0.6.1.zip` with `manifest.json` at the ZIP root.
+2. Upload `wisdom-newtab-chrome-v0.7.0.zip` with `manifest.json` at the ZIP root.
 3. Complete Store Listing using the text and images above.
 4. Complete Privacy practices using the permission explanations above.
 5. Set Distribution to free and public.

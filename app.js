@@ -7,6 +7,8 @@ const HACKERNEWS_CACHE_KEY = "wisdomHackerNewsV1";
 const HACKERNEWS_REFRESH_INTERVAL = 10 * 60 * 1000;
 const HACKERNEWS_CACHE_TTL = HACKERNEWS_REFRESH_INTERVAL;
 const FOCUS_DURATIONS = { focus: 25 * 60, break: 5 * 60 };
+const SHORTCUT_LONG_PRESS_MS = 520;
+const SHORTCUT_PRESS_MOVE_TOLERANCE = 9;
 
 const brandLogos = [
   { id: "wisdomechoes", match: /wisdomechoes\.net/i, src: "assets/logos/wisdomechoes.png" },
@@ -16,7 +18,7 @@ const brandLogos = [
 
 const shortcutLabelMigrations = {
   wisdomechoes: { from: "WisdomEchoes", to: "Blog" },
-  langqian: { from: "浪前", to: "SurferGarage" }
+  langqian: { from: "\u6d6a\u524d", to: "SurferGarage" }
 };
 
 const defaultSettings = {
@@ -57,32 +59,6 @@ const copy = {
     widgetGithub: "GitHub trends",
     widgetHackernews: "Hacker News",
     widgetFocus: "Focus timer"
-  },
-  zh: {
-    search: "用 Google 搜索",
-    add: "添加",
-    githubTitle: "GitHub 热门趋势",
-    githubViewAll: "查看全部",
-    githubEmpty: "GitHub 趋势暂时不可用",
-    githubLoading: "正在载入 GitHub 趋势...",
-    githubNoDescription: "暂无简介。",
-    githubRetry: "重试",
-    githubRefresh: "刷新 GitHub 趋势",
-    hackernewsTitle: "Hacker News 热门",
-    hackernewsViewAll: "打开 Hacker News",
-    hackernewsEmpty: "Hacker News 暂时不可用",
-    hackernewsLoading: "正在载入 Hacker News...",
-    hackernewsRetry: "重试",
-    hackernewsRefresh: "刷新 Hacker News",
-    focusTitle: "专注计时",
-    focusStart: "开始",
-    focusPause: "暂停",
-    focusReset: "重置计时器",
-    collapseWidgets: "收起组件",
-    openWidgets: "打开组件",
-    widgetGithub: "GitHub 趋势",
-    widgetHackernews: "Hacker News",
-    widgetFocus: "专注计时器"
   }
 };
 
@@ -127,7 +103,6 @@ const elements = {
   hackernewsSearchLabel: document.querySelector("#hackernews-search-label"),
   hackernewsTitle: document.querySelector("#hackernews-title"),
   homeStage: document.querySelector("#home-stage"),
-  languageLabel: document.querySelector("#language-label"),
   searchForm: document.querySelector("#search-form"),
   searchInput: document.querySelector("#search-input"),
   settingsDialog: document.querySelector("#settings-dialog"),
@@ -136,7 +111,9 @@ const elements = {
   shortcutEditorTemplate: document.querySelector("#shortcut-editor-template"),
   shortcutGrid: document.querySelector("#shortcut-grid"),
   shortcutSettings: document.querySelector("#shortcut-settings"),
+  shortcutStatus: document.querySelector("#shortcut-status"),
   shortcutTemplate: document.querySelector("#shortcut-template"),
+  surfaceInputs: [...document.querySelectorAll('input[name="surface"]')],
   widgetCollapse: document.querySelector("#widget-collapse"),
   widgetExpand: document.querySelector("#widget-expand"),
   widgetPanes: [...document.querySelectorAll("[data-widget-pane]")],
@@ -159,6 +136,13 @@ let focusRunning = false;
 let focusEndsAt = 0;
 let focusTimer;
 let focusCompletedSessions = 0;
+let shortcutEditMode = false;
+let shortcutPressTimer;
+let shortcutPressTarget;
+let shortcutPressOrigin;
+let shortcutResetPointerId;
+let blockNextShortcutActivation = false;
+let shortcutActivationResetTimer;
 
 function normalizeUrl(value) {
   const trimmed = String(value || "").trim();
@@ -195,7 +179,7 @@ function sanitizeSettings(candidate) {
     : structuredClone(defaultSettings.shortcuts);
 
   return {
-    locale: ["en", "zh"].includes(value.locale) ? value.locale : "en",
+    locale: "en",
     surface: ["light", "dark"].includes(value.surface) ? value.surface : "light",
     activeWidget: ["github", "hackernews", "focus"].includes(value.activeWidget) ? value.activeWidget : "github",
     widgetCollapsed: Boolean(value.widgetCollapsed),
@@ -218,7 +202,10 @@ function renderShortcuts() {
   elements.shortcutGrid.replaceChildren();
 
   settings.shortcuts.slice(0, 7).forEach((shortcut) => {
-    const tile = elements.shortcutTemplate.content.firstElementChild.cloneNode(true);
+    const item = elements.shortcutTemplate.content.firstElementChild.cloneNode(true);
+    const tile = item.querySelector(".shortcut");
+    const deleteButton = item.querySelector(".shortcut-delete");
+    item.dataset.shortcutId = shortcut.id;
     tile.href = shortcut.url;
     tile.style.setProperty("--shortcut-color", shortcut.color);
     const brand = brandLogoFor(shortcut.url);
@@ -234,7 +221,9 @@ function renderShortcuts() {
       fallback.textContent = iconText(shortcut);
     }
     tile.querySelector(".shortcut-label").textContent = shortcut.label;
-    elements.shortcutGrid.append(tile);
+    deleteButton.setAttribute("aria-label", `Delete ${shortcut.label}`);
+    deleteButton.title = `Delete ${shortcut.label}`;
+    elements.shortcutGrid.append(item);
   });
 
   const add = document.createElement("button");
@@ -247,6 +236,74 @@ function renderShortcuts() {
   `;
   add.addEventListener("click", () => openSettings(true));
   elements.shortcutGrid.append(add);
+  setShortcutEditMode(shortcutEditMode);
+}
+
+function cancelShortcutPress() {
+  clearTimeout(shortcutPressTimer);
+  shortcutPressTimer = undefined;
+  shortcutPressTarget?.classList.remove("is-pressing");
+  shortcutPressTarget = undefined;
+  shortcutPressOrigin = undefined;
+}
+
+function finishShortcutPress() {
+  cancelShortcutPress();
+}
+
+function blockShortcutActivation() {
+  clearTimeout(shortcutActivationResetTimer);
+  blockNextShortcutActivation = true;
+  shortcutActivationResetTimer = window.setTimeout(() => {
+    blockNextShortcutActivation = false;
+  }, 1000);
+}
+
+function setShortcutEditMode(active, announce = false) {
+  shortcutEditMode = Boolean(active);
+  elements.shortcutGrid.classList.toggle("is-editing", shortcutEditMode);
+  elements.shortcutGrid.querySelectorAll(".shortcut-delete").forEach((button) => {
+    button.tabIndex = shortcutEditMode ? 0 : -1;
+    button.setAttribute("aria-hidden", String(!shortcutEditMode));
+  });
+  if (!shortcutEditMode) cancelShortcutPress();
+  if (announce) {
+    elements.shortcutStatus.textContent = shortcutEditMode
+      ? "Shortcut editing enabled. Use a delete button or click elsewhere to finish."
+      : "Shortcut editing finished.";
+  }
+}
+
+function beginShortcutPress(event) {
+  if (!event.isPrimary || event.button !== 0 || shortcutEditMode || event.pointerId === shortcutResetPointerId) return;
+  const shortcut = event.target.closest(".shortcut-item .shortcut");
+  if (!shortcut) return;
+
+  cancelShortcutPress();
+  shortcutPressTarget = shortcut.closest(".shortcut-item");
+  shortcutPressOrigin = { x: event.clientX, y: event.clientY };
+  shortcutPressTarget.classList.add("is-pressing");
+  shortcutPressTimer = window.setTimeout(() => {
+    shortcutPressTarget?.classList.remove("is-pressing");
+    blockShortcutActivation();
+    setShortcutEditMode(true, true);
+  }, SHORTCUT_LONG_PRESS_MS);
+}
+
+function trackShortcutPress(event) {
+  if (!shortcutPressOrigin) return;
+  const distance = Math.hypot(event.clientX - shortcutPressOrigin.x, event.clientY - shortcutPressOrigin.y);
+  if (distance > SHORTCUT_PRESS_MOVE_TOLERANCE) cancelShortcutPress();
+}
+
+async function deleteShortcut(shortcutId) {
+  const shortcut = settings.shortcuts.find((item) => item.id === shortcutId);
+  if (!shortcut) return;
+  settings.shortcuts = settings.shortcuts.filter((item) => item.id !== shortcutId);
+  await storage.set(STORAGE_KEY, settings);
+  renderShortcuts();
+  renderSettings();
+  elements.shortcutStatus.textContent = `${shortcut.label} deleted.`;
 }
 
 function githubQuery() {
@@ -588,9 +645,48 @@ async function setWidgetCollapsed(collapsed) {
   applyWidgetState();
 }
 
+function applySurface(surface) {
+  settings.surface = surface;
+  document.documentElement.dataset.surface = surface;
+}
+
+async function switchSurface(surface, source) {
+  const nextSurface = ["light", "dark"].includes(surface) ? surface : "light";
+  if (nextSurface === settings.surface) return;
+
+  const trigger = source.closest("label") || source;
+  const bounds = trigger.getBoundingClientRect();
+  const originX = Math.round(bounds.left + bounds.width / 2);
+  const originY = Math.round(bounds.top + bounds.height / 2);
+  const radius = Math.ceil(Math.hypot(
+    Math.max(originX, window.innerWidth - originX),
+    Math.max(originY, window.innerHeight - originY)
+  ));
+  const root = document.documentElement;
+  root.style.setProperty("--theme-origin-x", `${originX}px`);
+  root.style.setProperty("--theme-origin-y", `${originY}px`);
+  root.style.setProperty("--theme-radius", `${radius}px`);
+
+  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (!document.startViewTransition || reducedMotion) {
+    applySurface(nextSurface);
+  } else {
+    root.classList.add("is-theme-switching");
+    try {
+      const transition = document.startViewTransition(() => applySurface(nextSurface));
+      await transition.finished;
+    } catch {
+      applySurface(nextSurface);
+    } finally {
+      root.classList.remove("is-theme-switching");
+    }
+  }
+
+  await storage.set(STORAGE_KEY, settings);
+}
+
 function applySettings() {
   document.documentElement.dataset.surface = settings.surface;
-  elements.languageLabel.textContent = settings.locale === "en" ? "中" : "EN";
   elements.searchInput.placeholder = copy[settings.locale].search;
   elements.githubTitle.textContent = copy[settings.locale].githubTitle;
   elements.githubSearchLabel.textContent = copy[settings.locale].githubViewAll;
@@ -651,6 +747,7 @@ function collectShortcuts() {
 }
 
 function openSettings(shortcutsOnly = false) {
+  setShortcutEditMode(false);
   renderSettings();
   elements.settingsDialog.showModal();
   if (shortcutsOnly) {
@@ -693,15 +790,57 @@ elements.searchForm.addEventListener("submit", (event) => {
 });
 
 document.querySelector("#settings-open").addEventListener("click", () => openSettings(false));
-document.querySelector("#shortcuts-edit").addEventListener("click", () => openSettings(true));
 document.querySelector("#settings-close").addEventListener("click", () => elements.settingsDialog.close());
 document.querySelector("#shortcut-add").addEventListener("click", () => addEditorRow({ color: "#3d5c91" }));
 
-document.querySelector("#language-toggle").addEventListener("click", async () => {
-  settings.locale = settings.locale === "en" ? "zh" : "en";
-  await storage.set(STORAGE_KEY, settings);
-  applySettings();
+elements.surfaceInputs.forEach((input) => {
+  input.addEventListener("change", () => {
+    if (input.checked) switchSurface(input.value, input);
+  });
 });
+
+elements.shortcutGrid.addEventListener("pointerdown", beginShortcutPress);
+elements.shortcutGrid.addEventListener("pointermove", trackShortcutPress);
+elements.shortcutGrid.addEventListener("pointerup", finishShortcutPress);
+elements.shortcutGrid.addEventListener("pointercancel", finishShortcutPress);
+elements.shortcutGrid.addEventListener("pointerleave", finishShortcutPress);
+elements.shortcutGrid.addEventListener("dragstart", (event) => event.preventDefault());
+elements.shortcutGrid.addEventListener("contextmenu", (event) => {
+  if (shortcutEditMode || !event.target.closest(".shortcut-item .shortcut")) return;
+  event.preventDefault();
+  blockShortcutActivation();
+  setShortcutEditMode(true, true);
+});
+elements.shortcutGrid.addEventListener("click", (event) => {
+  const deleteButton = event.target.closest(".shortcut-delete");
+  if (deleteButton) {
+    event.preventDefault();
+    event.stopPropagation();
+    deleteShortcut(deleteButton.closest(".shortcut-item")?.dataset.shortcutId);
+    return;
+  }
+
+  if (blockNextShortcutActivation) {
+    event.preventDefault();
+    event.stopPropagation();
+    clearTimeout(shortcutActivationResetTimer);
+    blockNextShortcutActivation = false;
+  }
+});
+
+document.addEventListener("pointerdown", (event) => {
+  if (!shortcutEditMode || event.target.closest(".shortcut-delete")) return;
+  if (event.target.closest("#shortcut-grid")) {
+    shortcutResetPointerId = event.pointerId;
+    blockShortcutActivation();
+    event.stopPropagation();
+  }
+  setShortcutEditMode(false, true);
+}, true);
+
+document.addEventListener("pointerup", (event) => {
+  if (event.pointerId === shortcutResetPointerId) shortcutResetPointerId = undefined;
+}, true);
 
 elements.widgetTabs.forEach((tab) => {
   tab.addEventListener("click", () => selectWidget(tab.dataset.widgetTab));
@@ -753,6 +892,10 @@ elements.settingsForm.addEventListener("submit", async (event) => {
 elements.settingsDialog.addEventListener("click", (event) => closeOnBackdrop(elements.settingsDialog, event));
 
 document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && shortcutEditMode) {
+    setShortcutEditMode(false, true);
+    return;
+  }
   const activeTag = document.activeElement?.tagName;
   const isTyping = ["INPUT", "TEXTAREA", "SELECT"].includes(activeTag);
   if (event.key === "/" && !isTyping && !elements.settingsDialog.open) {

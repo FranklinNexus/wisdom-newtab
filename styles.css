@@ -76,6 +76,29 @@ a {
   color: white;
 }
 
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+::view-transition-old(root) {
+  z-index: 1;
+}
+
+::view-transition-new(root) {
+  z-index: 2;
+}
+
+html.is-theme-switching::view-transition-new(root) {
+  animation: theme-reveal 520ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes theme-reveal {
+  from { clip-path: circle(0 at var(--theme-origin-x) var(--theme-origin-y)); }
+  to { clip-path: circle(var(--theme-radius) at var(--theme-origin-x) var(--theme-origin-y)); }
+}
+
 .sr-only {
   position: absolute;
   width: 1px;
@@ -115,8 +138,7 @@ a {
   align-items: center;
 }
 
-.tool-button,
-.language-button {
+.tool-button {
   display: inline-grid;
   width: 38px;
   height: 38px;
@@ -129,28 +151,16 @@ a {
   transition: border-color 140ms ease, background 140ms ease, transform 140ms ease;
 }
 
-.language-button {
-  width: auto;
-  padding: 0 8px;
-  grid-auto-flow: column;
-  gap: 5px;
-  font-size: 11px;
-  font-weight: 750;
-}
-
-.tool-button:hover,
-.language-button:hover {
+.tool-button:hover {
   border-color: var(--line);
   background: var(--surface);
 }
 
-.tool-button:active,
-.language-button:active {
+.tool-button:active {
   transform: translateY(1px);
 }
 
 .tool-button svg,
-.language-button svg,
 .search-button svg,
 .primary-button svg,
 .secondary-button svg {
@@ -257,6 +267,13 @@ a {
   justify-content: center;
 }
 
+.shortcut-item {
+  position: relative;
+  width: 76px;
+  height: 71px;
+  transform-origin: 50% 42%;
+}
+
 .shortcut {
   display: grid;
   width: 76px;
@@ -266,6 +283,9 @@ a {
   justify-items: center;
   color: #29282c;
   text-decoration: none;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-drag: none;
 }
 
 button.shortcut {
@@ -352,6 +372,79 @@ button.shortcut {
 .shortcut:focus-visible .shortcut-icon {
   box-shadow: 0 14px 34px rgb(34 26 22 / 24%);
   transform: translateY(-3px);
+}
+
+.shortcut-item.is-pressing .shortcut-icon {
+  box-shadow: 0 7px 18px rgb(34 26 22 / 13%);
+  transform: scale(0.93);
+  transition-duration: 240ms;
+}
+
+.shortcut-delete {
+  position: absolute;
+  z-index: 3;
+  top: -7px;
+  right: 5px;
+  display: grid;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  place-items: center;
+  border: 2px solid var(--page-bg);
+  border-radius: 50%;
+  opacity: 0;
+  background: var(--ink);
+  color: var(--paper);
+  box-shadow: 0 5px 14px rgb(34 26 22 / 24%);
+  cursor: pointer;
+  pointer-events: none;
+  transform: scale(0.55);
+  transition: opacity 150ms ease, transform 220ms cubic-bezier(0.16, 1, 0.3, 1), background 140ms ease;
+}
+
+.shortcut-delete svg {
+  width: 11px;
+  height: 11px;
+}
+
+.shortcut-delete:hover,
+.shortcut-delete:focus-visible {
+  background: var(--accent);
+}
+
+.shortcut-grid.is-editing .shortcut-item {
+  animation: shortcut-jiggle 180ms ease-in-out infinite alternate;
+}
+
+.shortcut-grid.is-editing .shortcut-item:nth-child(even) {
+  animation-delay: -90ms;
+  animation-direction: alternate-reverse;
+}
+
+.shortcut-grid.is-editing .shortcut-delete {
+  opacity: 1;
+  pointer-events: auto;
+  transform: scale(1);
+}
+
+.shortcut-grid.is-editing .shortcut {
+  cursor: default;
+}
+
+.shortcut-grid.is-editing .shortcut:hover .shortcut-icon,
+.shortcut-grid.is-editing .shortcut:focus-visible .shortcut-icon {
+  box-shadow: 0 10px 28px rgb(34 26 22 / 16%);
+  transform: none;
+}
+
+.shortcut-grid.is-editing .shortcut-add {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+@keyframes shortcut-jiggle {
+  from { transform: rotate(-1.35deg) translateY(0); }
+  to { transform: rotate(1.35deg) translateY(-0.5px); }
 }
 
 .shortcut-add .shortcut-icon {
@@ -1053,21 +1146,41 @@ dialog::backdrop {
 }
 
 .segmented-control {
+  position: relative;
   display: grid;
+  padding: 3px;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  overflow: hidden;
   border: 1px solid var(--line);
-  border-radius: 5px;
+  border-radius: 7px;
+  background: var(--page-bg);
+  isolation: isolate;
 }
 
 .segmented-control label {
   position: relative;
-  border-right: 1px solid var(--line);
+  z-index: 1;
   cursor: pointer;
 }
 
-.segmented-control label:last-child {
-  border-right: 0;
+.segmented-indicator {
+  position: absolute;
+  z-index: 0;
+  top: 3px;
+  bottom: 3px;
+  left: 3px;
+  width: calc(50% - 3px);
+  border-radius: 4px;
+  background: var(--ink);
+  box-shadow: 0 2px 8px rgb(34 26 22 / 14%);
+  transform: translateX(0);
+  transition: transform 260ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    background 180ms ease,
+    box-shadow 180ms ease;
+  will-change: transform;
+}
+
+.segmented-control:has(input[value="dark"]:checked) .segmented-indicator {
+  transform: translateX(100%);
 }
 
 .segmented-control input {
@@ -1076,18 +1189,24 @@ dialog::backdrop {
   pointer-events: none;
 }
 
-.segmented-control span {
+.segmented-control label > span {
   display: grid;
   height: 40px;
   place-items: center;
   color: var(--muted);
   font-size: 10px;
   font-weight: 700;
+  transition: color 180ms ease;
 }
 
 .segmented-control input:checked + span {
-  background: var(--ink);
   color: var(--paper);
+}
+
+.segmented-control input:focus-visible + span {
+  outline: 2px solid var(--accent);
+  outline-offset: -4px;
+  border-radius: 5px;
 }
 
 .shortcut-row {
@@ -1227,6 +1346,7 @@ dialog::backdrop {
     right: 0;
     width: min(360px, calc(100vw - 36px));
     height: 100%;
+    background: var(--surface-solid);
     box-shadow: -18px 0 60px rgb(34 26 22 / 16%);
   }
 }
@@ -1279,6 +1399,7 @@ dialog::backdrop {
     gap: 10px;
   }
 
+  .shortcut-item,
   .shortcut,
   .shortcut-label {
     width: 66px;
