@@ -1,0 +1,14 @@
+{
+  "manifest_version": 3,
+  "name": "Wisdom New Tab",
+  "version": "0.3.0",
+  "description": "A full-screen new tab built around WisdomEchoes.",
+  "permissions": ["storage"],
+  "host_permissions": ["https://api.github.com/*"],
+  "chrome_url_overrides": {
+    "newtab": "newtab.html"
+  },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'; connect-src https://api.github.com"
+  }
+}
