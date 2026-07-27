@@ -1,4 +1,5 @@
 const STORAGE_KEY = "wisdomNewtabSettingsV3";
+const THEME_CACHE_KEY = "wisdomThemePreferenceV1";
 const GITHUB_CACHE_KEY = "wisdomGithubRisingV1";
 const GITHUB_REFRESH_INTERVAL = 10 * 60 * 1000;
 const GITHUB_RETRY_INTERVAL = 2 * 60 * 1000;
@@ -168,6 +169,27 @@ function normalizeUrl(value) {
 
 function safeColor(value, fallback = "#29282c") {
   return /^#[0-9a-f]{6}$/i.test(String(value || "")) ? value : fallback;
+}
+
+function cachedAppearance() {
+  try {
+    const value = JSON.parse(localStorage.getItem(THEME_CACHE_KEY));
+    if (!value || typeof value !== "object") return null;
+    return {
+      surface: ["light", "dark"].includes(value.surface) ? value.surface : "light",
+      palette: PALETTES.includes(value.palette) ? value.palette : "warm"
+    };
+  } catch {
+    return null;
+  }
+}
+
+function cacheAppearance(surface, palette) {
+  try {
+    localStorage.setItem(THEME_CACHE_KEY, JSON.stringify({ surface, palette }));
+  } catch {
+    // chrome.storage.local remains the durable settings store.
+  }
 }
 
 function sanitizeSettings(candidate) {
@@ -690,6 +712,7 @@ function applyAppearance(surface, palette) {
   settings.palette = palette;
   document.documentElement.dataset.surface = surface;
   document.documentElement.dataset.palette = palette;
+  cacheAppearance(surface, palette);
 }
 
 async function switchAppearance(updates, source) {
@@ -729,8 +752,7 @@ async function switchAppearance(updates, source) {
 }
 
 function applySettings() {
-  document.documentElement.dataset.surface = settings.surface;
-  document.documentElement.dataset.palette = settings.palette;
+  applyAppearance(settings.surface, settings.palette);
   elements.searchInput.placeholder = copy[settings.locale].search;
   elements.githubTitle.textContent = copy[settings.locale].githubTitle;
   elements.githubSearchLabel.textContent = copy[settings.locale].githubViewAll;
@@ -862,7 +884,9 @@ function searchTarget(rawQuery) {
 }
 
 async function initialize() {
-  settings = sanitizeSettings(await storage.get(STORAGE_KEY, defaultSettings));
+  const storedSettings = sanitizeSettings(await storage.get(STORAGE_KEY, defaultSettings));
+  const appearance = cachedAppearance();
+  settings = sanitizeSettings(appearance ? { ...storedSettings, ...appearance } : storedSettings);
   await storage.set(STORAGE_KEY, settings);
   applySettings();
 }

@@ -7,6 +7,7 @@ const requiredFiles = [
   "newtab.html",
   "styles.css",
   "app.js",
+  "theme-init.js",
   "assets/icons.svg",
   "assets/extension/icon16.png",
   "assets/extension/icon32.png",
@@ -103,9 +104,19 @@ try {
   errors.push(`Invalid app.js: ${error.message}`);
 }
 
+try {
+  const source = await readFile("theme-init.js", "utf8");
+  new vm.Script(source, { filename: "theme-init.js" });
+} catch (error) {
+  errors.push(`Invalid theme-init.js: ${error.message}`);
+}
+
 const html = await readFile("newtab.html", "utf8").catch(() => "");
 if (html && /<script(?![^>]*\bsrc=)/i.test(html)) {
   errors.push("Inline scripts are not allowed by the extension CSP");
+}
+if (html && !/<script\s+src=["']theme-init\.js["']><\/script>\s*<link\s+rel=["']stylesheet["']/i.test(html)) {
+  errors.push("theme-init.js must load before styles.css to restore the theme before first paint");
 }
 
 if (errors.length) {
