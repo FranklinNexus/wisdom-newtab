@@ -6,7 +6,7 @@ A Chrome / Edge new-tab extension inspired by [WisdomEchoes](https://www.wisdome
 
 ## Features
 
-- A warm, plain surface with no decorative hero image.
+- Four restrained color themes: Warm, Porcelain, Sage, and Graphite.
 - A pill-shaped Google search field that opens typed URLs directly.
 - `g`, `gh`, `yt`, `mdn`, `npm`, and `wiki` search prefixes.
 - Adaptive official logo shortcuts for Blog, SurferGarage, and GitHub.
@@ -16,12 +16,14 @@ A Chrome / Edge new-tab extension inspired by [WisdomEchoes](https://www.wisdome
 - A seven-day GitHub ranking with language, description, stars, and forks.
 - Current Hacker News stories with score, author, time, and comment count.
 - Ten-minute, visibility-aware public-data refreshes with cached offline fallback.
-- An immediate Light / Dark control with a persistent local preference.
+- Immediate Light / Dark and theme controls with persistent local preferences.
 - Settings stored only in the browser.
 
 ## Install
 
-Download the latest `wisdom-newtab-v*.zip` from [GitHub Releases](https://github.com/FranklinNexus/wisdom-newtab/releases), then extract it to a permanent folder. Chrome and Edge load the extracted folder, not the ZIP itself.
+For Edge or a manual development install, download `wisdom-newtab-latest.zip` from the rolling [latest development release](https://github.com/FranklinNexus/wisdom-newtab/releases/tag/latest), then extract it to a permanent folder. This package follows the current `main` branch and can be newer than the Chrome Web Store version.
+
+Versioned GitHub Releases remain immutable so they continue to match submitted store packages. Chrome and Edge load the extracted folder, not the ZIP itself.
 
 ### Chrome
 
@@ -85,6 +87,8 @@ See [Privacy Policy](PRIVACY.md) for the complete policy.
 ## Release
 
 Chrome Web Store fields, permission explanations, screenshot sizes, and an upload checklist are in [store/STORE_LISTING.md](store/STORE_LISTING.md). Run `scripts/build-store-assets.ps1` to regenerate the extension icons and store assets.
+
+Run `scripts/package-latest.ps1` to rebuild the rolling `wisdom-newtab-latest.zip` package without changing the manifest version.
 
 GitHub Releases can distribute versions before store approval. The Chrome Web Store and Microsoft Edge Add-ons each require their own developer account and review; a GitHub Release is not store approval.
 
