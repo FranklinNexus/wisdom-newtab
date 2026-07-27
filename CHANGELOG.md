@@ -10,6 +10,7 @@
 - Added a rolling latest package for Edge and manual installs without changing the store version.
 - Restored the saved theme before first paint to remove the warm-to-selected-theme flash.
 - Refined widget, shortcut, and settings typography for clearer hierarchy across desktop and narrow screens.
+- Stabilized search depth, restored collapsed widgets before first paint, and added a restrained search exit transition.
 
 ## 0.7.0 - 2026-07-27
 

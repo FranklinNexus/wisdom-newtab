@@ -1,6 +1,7 @@
 (() => {
   const SETTINGS_KEY = "wisdomNewtabSettingsV3";
   const THEME_CACHE_KEY = "wisdomThemePreferenceV1";
+  const WIDGET_CACHE_KEY = "wisdomWidgetPreferenceV1";
   const surfaces = ["light", "dark"];
   const palettes = ["warm", "porcelain", "sage", "graphite"];
   const root = document.documentElement;
@@ -25,7 +26,6 @@
     const appearance = sanitizeAppearance(value) || { surface: "light", palette: "warm" };
     root.dataset.surface = appearance.surface;
     root.dataset.palette = appearance.palette;
-    root.classList.remove("theme-pending");
 
     if (cache) {
       try {
@@ -36,20 +36,42 @@
     }
   }
 
+  function applyWidgetState(collapsed, cache = true) {
+    const value = Boolean(collapsed);
+    root.dataset.widgets = value ? "collapsed" : "open";
+
+    if (cache) {
+      try {
+        localStorage.setItem(WIDGET_CACHE_KEY, JSON.stringify(value));
+      } catch {
+        // The regular settings loader remains the fallback when local storage is unavailable.
+      }
+    }
+  }
+
   const cachedAppearance = sanitizeAppearance(readLocal(THEME_CACHE_KEY));
-  if (cachedAppearance) {
-    applyAppearance(cachedAppearance, false);
+  const cachedWidgetState = readLocal(WIDGET_CACHE_KEY);
+  const hasCachedWidgetState = typeof cachedWidgetState === "boolean";
+  const previewSettings = readLocal(SETTINGS_KEY);
+
+  function settle(settings) {
+    applyAppearance(cachedAppearance || settings);
+    applyWidgetState(hasCachedWidgetState ? cachedWidgetState : settings?.widgetCollapsed);
+    root.classList.remove("theme-pending");
+  }
+
+  if (cachedAppearance && hasCachedWidgetState) {
+    settle(null);
     return;
   }
 
-  const previewSettings = sanitizeAppearance(readLocal(SETTINGS_KEY));
   const extensionStorage = globalThis.chrome?.storage?.local;
   if (!extensionStorage) {
-    applyAppearance(previewSettings);
+    settle(previewSettings);
     return;
   }
 
   extensionStorage.get(SETTINGS_KEY)
-    .then((result) => applyAppearance(result[SETTINGS_KEY] || previewSettings))
-    .catch(() => applyAppearance(previewSettings, false));
+    .then((result) => settle(result[SETTINGS_KEY] || previewSettings))
+    .catch(() => settle(previewSettings));
 })();
