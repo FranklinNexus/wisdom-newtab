@@ -17,6 +17,7 @@ try {
     "newtab.html",
     "styles.css",
     "app.js",
+    "theme-init.js",
     "assets\icons.svg",
     "assets\logos",
     "assets\extension"

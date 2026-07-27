@@ -116,6 +116,18 @@
   box-sizing: border-box;
 }
 
+html {
+  background: var(--page-bg);
+}
+
+html.theme-pending {
+  background: #f1f3f2;
+}
+
+html.theme-pending body {
+  opacity: 0;
+}
+
 html,
 body {
   width: 100%;
@@ -132,6 +144,20 @@ body {
   font-size: 16px;
   line-height: 1.5;
   letter-spacing: 0;
+  opacity: 1;
+  transition: opacity 120ms ease;
+}
+
+@media (prefers-color-scheme: dark) {
+  html.theme-pending {
+    background: #101213;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body {
+    transition: none;
+  }
 }
 
 button,

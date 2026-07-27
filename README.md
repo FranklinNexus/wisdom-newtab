@@ -71,6 +71,7 @@ manifest.json          Manifest V3 configuration and new-tab override
 newtab.html            Semantic page structure
 styles.css             Full-screen visual system and responsive layout
 app.js                 Search, shortcuts, widgets, timer, settings, and storage
+theme-init.js          Restores the saved theme before the first visual paint
 assets/icons.svg       Trimmed Lucide icon set
 assets/extension/      Chrome / Edge extension icons
 assets/logos/          Official Blog, SurferGarage, and GitHub logos
