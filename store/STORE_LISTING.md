@@ -35,6 +35,7 @@ Highlights:
 - Local 25/5 focus timer
 - Collapsible single-widget sidebar
 - Immediate Light / Dark surface switching
+- Warm, Porcelain, Sage, and Graphite theme palettes
 - Press-and-hold shortcut editing with persistent deletion
 
 Privacy-first by design: settings stay in browser storage, there are no analytics or ads, and the extension does not read browsing history or inject scripts into websites.

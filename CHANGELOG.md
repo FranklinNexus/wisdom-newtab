@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+- Replaced decorative settings labels and section numbers with a cleaner product-style hierarchy.
+- Added Warm, Porcelain, Sage, and Graphite theme palettes, each with Light and Dark variants.
+- Added immediate animated palette switching with persistent browser storage.
+- Added request timeouts and per-widget refresh state so the refresh control always recovers.
+- Added a polished open and close transition for the Settings panel.
+- Added a rolling latest package for Edge and manual installs without changing the store version.
+
 ## 0.7.0 - 2026-07-27
 
 - Removed the language switcher and shortcut edit button; the interface is now English-only.

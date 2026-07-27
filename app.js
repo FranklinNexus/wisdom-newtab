@@ -9,6 +9,9 @@ const HACKERNEWS_CACHE_TTL = HACKERNEWS_REFRESH_INTERVAL;
 const FOCUS_DURATIONS = { focus: 25 * 60, break: 5 * 60 };
 const SHORTCUT_LONG_PRESS_MS = 520;
 const SHORTCUT_PRESS_MOVE_TOLERANCE = 9;
+const REQUEST_TIMEOUT_MS = 12 * 1000;
+const SETTINGS_TRANSITION_MS = 320;
+const PALETTES = ["warm", "porcelain", "sage", "graphite"];
 
 const brandLogos = [
   { id: "wisdomechoes", match: /wisdomechoes\.net/i, src: "assets/logos/wisdomechoes.png" },
@@ -24,6 +27,7 @@ const shortcutLabelMigrations = {
 const defaultSettings = {
   locale: "en",
   surface: "light",
+  palette: "warm",
   activeWidget: "github",
   widgetCollapsed: false,
   shortcuts: [
@@ -107,6 +111,8 @@ const elements = {
   searchInput: document.querySelector("#search-input"),
   settingsDialog: document.querySelector("#settings-dialog"),
   settingsForm: document.querySelector("#settings-form"),
+  settingsOpen: document.querySelector("#settings-open"),
+  paletteInputs: [...document.querySelectorAll('input[name="palette"]')],
   shortcutEditor: document.querySelector("#shortcut-editor"),
   shortcutEditorTemplate: document.querySelector("#shortcut-editor-template"),
   shortcutGrid: document.querySelector("#shortcut-grid"),
@@ -122,7 +128,8 @@ const elements = {
 };
 
 let settings = structuredClone(defaultSettings);
-let refreshFeedbackTimer;
+const refreshStates = { github: "idle", hackernews: "idle" };
+const refreshFeedbackTimers = { github: undefined, hackernews: undefined };
 let githubRefreshTimer;
 let githubRefreshRequest;
 let githubLastFetchedAt = 0;
@@ -143,6 +150,9 @@ let shortcutPressOrigin;
 let shortcutResetPointerId;
 let blockNextShortcutActivation = false;
 let shortcutActivationResetTimer;
+let settingsCloseTimer;
+let settingsDialogClosing = false;
+let settingsReturnFocus;
 
 function normalizeUrl(value) {
   const trimmed = String(value || "").trim();
@@ -181,6 +191,7 @@ function sanitizeSettings(candidate) {
   return {
     locale: "en",
     surface: ["light", "dark"].includes(value.surface) ? value.surface : "light",
+    palette: PALETTES.includes(value.palette) ? value.palette : "warm",
     activeWidget: ["github", "hackernews", "focus"].includes(value.activeWidget) ? value.activeWidget : "github",
     widgetCollapsed: Boolean(value.widgetCollapsed),
     shortcuts
@@ -316,18 +327,35 @@ function formatCompactNumber(value) {
   return new Intl.NumberFormat("en", { notation: "compact", maximumFractionDigits: 1 }).format(Number(value) || 0);
 }
 
-function setRefreshState(state, widget = settings.activeWidget) {
-  if (widget !== settings.activeWidget) return;
-  clearTimeout(refreshFeedbackTimer);
+function renderRefreshState() {
+  const state = refreshStates[settings.activeWidget] || "idle";
   elements.widgetRefresh.classList.remove("is-loading", "is-success", "is-error");
-  elements.widgetRefresh.classList.add(`is-${state}`);
+  if (state !== "idle") elements.widgetRefresh.classList.add(`is-${state}`);
   elements.widgetRefresh.disabled = state === "loading";
   elements.widgetRefresh.setAttribute("aria-busy", String(state === "loading"));
+}
 
-  if (state !== "loading") {
-    refreshFeedbackTimer = setTimeout(() => {
-      elements.widgetRefresh.classList.remove(`is-${state}`);
+function setRefreshState(state, widget = settings.activeWidget) {
+  if (!(widget in refreshStates)) return;
+  clearTimeout(refreshFeedbackTimers[widget]);
+  refreshStates[widget] = state;
+  if (widget === settings.activeWidget) renderRefreshState();
+
+  if (state === "success" || state === "error") {
+    refreshFeedbackTimers[widget] = window.setTimeout(() => {
+      refreshStates[widget] = "idle";
+      if (widget === settings.activeWidget) renderRefreshState();
     }, 900);
+  }
+}
+
+async function withRequestTimeout(task, timeoutMs = REQUEST_TIMEOUT_MS) {
+  const controller = new AbortController();
+  const timeout = window.setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await task(controller.signal);
+  } finally {
+    clearTimeout(timeout);
   }
 }
 
@@ -416,9 +444,14 @@ async function syncGitHubRising(force = false) {
   setRefreshState("loading", "github");
 
   try {
-    const response = await fetch(apiUrl, { headers: { Accept: "application/vnd.github+json" } });
-    if (!response.ok) throw new Error(`GitHub API returned ${response.status}`);
-    const payload = await response.json();
+    const payload = await withRequestTimeout(async (signal) => {
+      const response = await fetch(apiUrl, {
+        headers: { Accept: "application/vnd.github+json" },
+        signal
+      });
+      if (!response.ok) throw new Error(`GitHub API returned ${response.status}`);
+      return response.json();
+    });
     const repositories = (payload.items || []).slice(0, 5).map((repository) => ({
       name: String(repository.full_name || repository.name || "Untitled"),
       url: normalizeUrl(repository.html_url),
@@ -439,6 +472,8 @@ async function syncGitHubRising(force = false) {
     if (!hasCachedItems) {
       renderGitHubState(copy[settings.locale].githubEmpty, true);
     }
+  } finally {
+    if (refreshStates.github === "loading") setRefreshState("idle", "github");
   }
 }
 
@@ -517,14 +552,16 @@ async function syncHackerNews(force = false) {
   setRefreshState("loading", "hackernews");
 
   try {
-    const idsResponse = await fetch("https://hacker-news.firebaseio.com/v0/topstories.json");
-    if (!idsResponse.ok) throw new Error(`Hacker News API returned ${idsResponse.status}`);
-    const ids = await idsResponse.json();
-    const stories = await Promise.all((ids || []).slice(0, 12).map(async (id) => {
-      const response = await fetch(`https://hacker-news.firebaseio.com/v0/item/${id}.json`);
-      if (!response.ok) return null;
-      return response.json();
-    }));
+    const stories = await withRequestTimeout(async (signal) => {
+      const idsResponse = await fetch("https://hacker-news.firebaseio.com/v0/topstories.json", { signal });
+      if (!idsResponse.ok) throw new Error(`Hacker News API returned ${idsResponse.status}`);
+      const ids = await idsResponse.json();
+      return Promise.all((ids || []).slice(0, 12).map(async (id) => {
+        const response = await fetch(`https://hacker-news.firebaseio.com/v0/item/${id}.json`, { signal });
+        if (!response.ok) return null;
+        return response.json();
+      }));
+    });
     const items = stories.filter((story) => story?.type === "story" && story.title).slice(0, 5).map((story) => ({
       id: Number(story.id),
       title: String(story.title).slice(0, 180),
@@ -542,6 +579,8 @@ async function syncHackerNews(force = false) {
   } catch {
     setRefreshState("error", "hackernews");
     if (!hasCachedItems) renderHackerNewsState(copy[settings.locale].hackernewsEmpty, true);
+  } finally {
+    if (refreshStates.hackernews === "loading") setRefreshState("idle", "hackernews");
   }
 }
 
@@ -627,6 +666,7 @@ function applyWidgetState() {
   const refreshKey = settings.activeWidget === "hackernews" ? "hackernewsRefresh" : "githubRefresh";
   elements.widgetRefresh.setAttribute("aria-label", copy[settings.locale][refreshKey]);
   elements.widgetRefresh.title = copy[settings.locale][refreshKey];
+  renderRefreshState();
 
   if (settings.activeWidget === "hackernews") loadHackerNews(false);
   if (settings.activeWidget === "github") loadGitHubRising(false);
@@ -645,14 +685,17 @@ async function setWidgetCollapsed(collapsed) {
   applyWidgetState();
 }
 
-function applySurface(surface) {
+function applyAppearance(surface, palette) {
   settings.surface = surface;
+  settings.palette = palette;
   document.documentElement.dataset.surface = surface;
+  document.documentElement.dataset.palette = palette;
 }
 
-async function switchSurface(surface, source) {
-  const nextSurface = ["light", "dark"].includes(surface) ? surface : "light";
-  if (nextSurface === settings.surface) return;
+async function switchAppearance(updates, source) {
+  const nextSurface = ["light", "dark"].includes(updates.surface) ? updates.surface : settings.surface;
+  const nextPalette = PALETTES.includes(updates.palette) ? updates.palette : settings.palette;
+  if (nextSurface === settings.surface && nextPalette === settings.palette) return;
 
   const trigger = source.closest("label") || source;
   const bounds = trigger.getBoundingClientRect();
@@ -669,14 +712,14 @@ async function switchSurface(surface, source) {
 
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   if (!document.startViewTransition || reducedMotion) {
-    applySurface(nextSurface);
+    applyAppearance(nextSurface, nextPalette);
   } else {
     root.classList.add("is-theme-switching");
     try {
-      const transition = document.startViewTransition(() => applySurface(nextSurface));
+      const transition = document.startViewTransition(() => applyAppearance(nextSurface, nextPalette));
       await transition.finished;
     } catch {
-      applySurface(nextSurface);
+      applyAppearance(nextSurface, nextPalette);
     } finally {
       root.classList.remove("is-theme-switching");
     }
@@ -687,6 +730,7 @@ async function switchSurface(surface, source) {
 
 function applySettings() {
   document.documentElement.dataset.surface = settings.surface;
+  document.documentElement.dataset.palette = settings.palette;
   elements.searchInput.placeholder = copy[settings.locale].search;
   elements.githubTitle.textContent = copy[settings.locale].githubTitle;
   elements.githubSearchLabel.textContent = copy[settings.locale].githubViewAll;
@@ -719,6 +763,8 @@ function applySettings() {
 function renderSettings() {
   const surfaceChoice = elements.settingsForm.querySelector(`input[name="surface"][value="${settings.surface}"]`);
   if (surfaceChoice) surfaceChoice.checked = true;
+  const paletteChoice = elements.settingsForm.querySelector(`input[name="palette"][value="${settings.palette}"]`);
+  if (paletteChoice) paletteChoice.checked = true;
 
   elements.shortcutEditor.replaceChildren();
   settings.shortcuts.forEach((shortcut) => addEditorRow(shortcut));
@@ -747,16 +793,54 @@ function collectShortcuts() {
 }
 
 function openSettings(shortcutsOnly = false) {
+  if (elements.settingsDialog.open || settingsDialogClosing) return;
   setShortcutEditMode(false);
   renderSettings();
+  settingsReturnFocus = document.activeElement instanceof HTMLElement ? document.activeElement : elements.settingsOpen;
+  settingsDialogClosing = false;
+  clearTimeout(settingsCloseTimer);
+  elements.settingsDialog.classList.remove("is-open", "is-closing");
+  elements.settingsOpen.classList.add("is-active");
+  elements.settingsOpen.setAttribute("aria-expanded", "true");
+
+  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (reducedMotion) elements.settingsDialog.classList.add("is-open");
   elements.settingsDialog.showModal();
+  if (!reducedMotion) {
+    elements.settingsDialog.getBoundingClientRect();
+    requestAnimationFrame(() => elements.settingsDialog.classList.add("is-open"));
+  }
   if (shortcutsOnly) {
     requestAnimationFrame(() => elements.shortcutSettings.scrollIntoView({ block: "start" }));
   }
 }
 
-function closeOnBackdrop(dialog, event) {
-  if (event.target === dialog) dialog.close();
+function finishSettingsClose() {
+  if (!elements.settingsDialog.open) return;
+  clearTimeout(settingsCloseTimer);
+  elements.settingsDialog.close();
+  elements.settingsDialog.classList.remove("is-open", "is-closing");
+  elements.settingsOpen.classList.remove("is-active");
+  elements.settingsOpen.setAttribute("aria-expanded", "false");
+  settingsDialogClosing = false;
+  const returnFocus = settingsReturnFocus;
+  settingsReturnFocus = undefined;
+  requestAnimationFrame(() => returnFocus?.focus({ preventScroll: true }));
+}
+
+function closeSettings() {
+  if (!elements.settingsDialog.open || settingsDialogClosing) return;
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    finishSettingsClose();
+    return;
+  }
+
+  settingsDialogClosing = true;
+  elements.settingsDialog.classList.add("is-closing");
+  elements.settingsDialog.classList.remove("is-open");
+  elements.settingsOpen.classList.remove("is-active");
+  elements.settingsOpen.setAttribute("aria-expanded", "false");
+  settingsCloseTimer = window.setTimeout(finishSettingsClose, SETTINGS_TRANSITION_MS + 80);
 }
 
 function searchTarget(rawQuery) {
@@ -789,13 +873,19 @@ elements.searchForm.addEventListener("submit", (event) => {
   if (query) window.location.assign(searchTarget(query));
 });
 
-document.querySelector("#settings-open").addEventListener("click", () => openSettings(false));
-document.querySelector("#settings-close").addEventListener("click", () => elements.settingsDialog.close());
+elements.settingsOpen.addEventListener("click", () => openSettings(false));
+document.querySelector("#settings-close").addEventListener("click", closeSettings);
 document.querySelector("#shortcut-add").addEventListener("click", () => addEditorRow({ color: "#3d5c91" }));
 
 elements.surfaceInputs.forEach((input) => {
   input.addEventListener("change", () => {
-    if (input.checked) switchSurface(input.value, input);
+    if (input.checked) switchAppearance({ surface: input.value }, input);
+  });
+});
+
+elements.paletteInputs.forEach((input) => {
+  input.addEventListener("change", () => {
+    if (input.checked) switchAppearance({ palette: input.value }, input);
   });
 });
 
@@ -882,16 +972,33 @@ elements.settingsForm.addEventListener("submit", async (event) => {
   settings = sanitizeSettings({
     ...settings,
     surface: new FormData(elements.settingsForm).get("surface"),
+    palette: new FormData(elements.settingsForm).get("palette"),
     shortcuts: collectShortcuts()
   });
   await storage.set(STORAGE_KEY, settings);
   applySettings();
-  elements.settingsDialog.close();
+  closeSettings();
 });
 
-elements.settingsDialog.addEventListener("click", (event) => closeOnBackdrop(elements.settingsDialog, event));
+elements.settingsDialog.addEventListener("click", (event) => {
+  if (event.target === elements.settingsDialog) closeSettings();
+});
+elements.settingsDialog.addEventListener("cancel", (event) => {
+  event.preventDefault();
+  closeSettings();
+});
+elements.settingsDialog.addEventListener("transitionend", (event) => {
+  if (settingsDialogClosing && event.target === elements.settingsDialog && event.propertyName === "transform") {
+    finishSettingsClose();
+  }
+});
 
 document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && elements.settingsDialog.open) {
+    event.preventDefault();
+    closeSettings();
+    return;
+  }
   if (event.key === "Escape" && shortcutEditMode) {
     setShortcutEditMode(false, true);
     return;
