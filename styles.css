@@ -843,7 +843,10 @@ button.shortcut {
   min-height: 0;
   margin: 0;
   padding: 0;
-  overflow: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-color: var(--line) transparent;
+  scrollbar-width: thin;
   list-style: none;
 }
 
@@ -962,7 +965,10 @@ button.shortcut {
   min-height: 0;
   margin: 0;
   padding: 0;
-  overflow: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-color: var(--line) transparent;
+  scrollbar-width: thin;
   list-style: none;
 }
 
