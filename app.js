@@ -1,5 +1,6 @@
 const STORAGE_KEY = "wisdomNewtabSettingsV3";
 const THEME_CACHE_KEY = "wisdomThemePreferenceV1";
+const WIDGET_CACHE_KEY = "wisdomWidgetPreferenceV1";
 const GITHUB_CACHE_KEY = "wisdomGithubRisingV1";
 const GITHUB_REFRESH_INTERVAL = 10 * 60 * 1000;
 const GITHUB_RETRY_INTERVAL = 2 * 60 * 1000;
@@ -12,6 +13,7 @@ const SHORTCUT_LONG_PRESS_MS = 520;
 const SHORTCUT_PRESS_MOVE_TOLERANCE = 9;
 const REQUEST_TIMEOUT_MS = 12 * 1000;
 const SETTINGS_TRANSITION_MS = 320;
+const SEARCH_NAVIGATION_DELAY_MS = 160;
 const PALETTES = ["warm", "porcelain", "sage", "graphite"];
 
 const brandLogos = [
@@ -154,6 +156,8 @@ let shortcutActivationResetTimer;
 let settingsCloseTimer;
 let settingsDialogClosing = false;
 let settingsReturnFocus;
+let searchNavigationTimer;
+let searchNavigationPending = false;
 
 function normalizeUrl(value) {
   const trimmed = String(value || "").trim();
@@ -187,6 +191,23 @@ function cachedAppearance() {
 function cacheAppearance(surface, palette) {
   try {
     localStorage.setItem(THEME_CACHE_KEY, JSON.stringify({ surface, palette }));
+  } catch {
+    // chrome.storage.local remains the durable settings store.
+  }
+}
+
+function cachedWidgetCollapsed() {
+  try {
+    const value = JSON.parse(localStorage.getItem(WIDGET_CACHE_KEY));
+    return typeof value === "boolean" ? value : null;
+  } catch {
+    return null;
+  }
+}
+
+function cacheWidgetCollapsed(collapsed) {
+  try {
+    localStorage.setItem(WIDGET_CACHE_KEY, JSON.stringify(Boolean(collapsed)));
   } catch {
     // chrome.storage.local remains the durable settings store.
   }
@@ -672,6 +693,8 @@ function setFocusDuration(minutes) {
 }
 
 function applyWidgetState() {
+  document.documentElement.dataset.widgets = settings.widgetCollapsed ? "collapsed" : "open";
+  cacheWidgetCollapsed(settings.widgetCollapsed);
   elements.homeStage.classList.toggle("is-widget-collapsed", settings.widgetCollapsed);
   elements.widgetTabs.forEach((tab) => {
     const active = tab.dataset.widgetTab === settings.activeWidget;
@@ -703,8 +726,8 @@ async function selectWidget(widget) {
 
 async function setWidgetCollapsed(collapsed) {
   settings.widgetCollapsed = collapsed;
-  await storage.set(STORAGE_KEY, settings);
   applyWidgetState();
+  await storage.set(STORAGE_KEY, settings);
 }
 
 function applyAppearance(surface, palette) {
@@ -883,10 +906,39 @@ function searchTarget(rawQuery) {
   return `https://www.google.com/search?q=${encodeURIComponent(value)}`;
 }
 
+function resetSearchNavigation() {
+  clearTimeout(searchNavigationTimer);
+  searchNavigationTimer = undefined;
+  searchNavigationPending = false;
+  document.body.classList.remove("is-navigating");
+  elements.searchForm.classList.remove("is-submitting");
+  elements.searchForm.setAttribute("aria-busy", "false");
+}
+
+function navigateFromSearch(url) {
+  if (searchNavigationPending) return;
+  searchNavigationPending = true;
+  elements.searchForm.classList.add("is-submitting");
+  elements.searchForm.setAttribute("aria-busy", "true");
+
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    window.location.assign(url);
+    return;
+  }
+
+  document.body.classList.add("is-navigating");
+  searchNavigationTimer = window.setTimeout(() => window.location.assign(url), SEARCH_NAVIGATION_DELAY_MS);
+}
+
 async function initialize() {
   const storedSettings = sanitizeSettings(await storage.get(STORAGE_KEY, defaultSettings));
   const appearance = cachedAppearance();
-  settings = sanitizeSettings(appearance ? { ...storedSettings, ...appearance } : storedSettings);
+  const widgetCollapsed = cachedWidgetCollapsed();
+  settings = sanitizeSettings({
+    ...storedSettings,
+    ...(appearance || {}),
+    ...(widgetCollapsed === null ? {} : { widgetCollapsed })
+  });
   await storage.set(STORAGE_KEY, settings);
   applySettings();
 }
@@ -894,8 +946,10 @@ async function initialize() {
 elements.searchForm.addEventListener("submit", (event) => {
   event.preventDefault();
   const query = elements.searchInput.value.trim();
-  if (query) window.location.assign(searchTarget(query));
+  if (query) navigateFromSearch(searchTarget(query));
 });
+
+window.addEventListener("pageshow", resetSearchNavigation);
 
 elements.settingsOpen.addEventListener("click", () => openSettings(false));
 document.querySelector("#settings-close").addEventListener("click", closeSettings);
