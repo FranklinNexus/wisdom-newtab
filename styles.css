@@ -483,8 +483,9 @@ button.shortcut {
   width: 76px;
   overflow: hidden;
   color: var(--ink);
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
+  line-height: 1.25;
   text-align: center;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -582,7 +583,7 @@ button.shortcut {
 
 .widget-sidebar {
   display: grid;
-  width: 360px;
+  width: 372px;
   min-width: 0;
   min-height: 0;
   justify-self: end;
@@ -601,7 +602,7 @@ button.shortcut {
 .widget-sidebar-header {
   display: flex;
   min-width: 0;
-  padding: 8px 10px 8px 12px;
+  padding: 9px 12px 9px 14px;
   justify-content: space-between;
   align-items: center;
   border-bottom: 1px solid var(--line-soft);
@@ -623,8 +624,8 @@ button.shortcut {
 
 .widget-tab {
   display: grid;
-  width: 34px;
-  height: 34px;
+  width: 36px;
+  height: 36px;
   padding: 0;
   place-items: center;
   border: 0;
@@ -659,8 +660,8 @@ button.shortcut {
 }
 
 .widget-sidebar-actions .tool-button {
-  width: 36px;
-  height: 36px;
+  width: 38px;
+  height: 38px;
 }
 
 .widget-refresh-button {
@@ -753,13 +754,13 @@ button.shortcut {
 .widget-pane-heading,
 .widget-pane-footer {
   display: flex;
-  padding: 17px 22px;
+  padding: 18px 24px;
   justify-content: space-between;
   align-items: center;
 }
 
 .widget-pane-heading {
-  min-height: 74px;
+  min-height: 78px;
   border-bottom: 1px solid var(--line-soft);
 }
 
@@ -768,7 +769,7 @@ button.shortcut {
   margin-bottom: 5px;
   color: var(--accent);
   font-family: var(--font-mono);
-  font-size: 7px;
+  font-size: 8px;
   font-weight: 700;
 }
 
@@ -780,12 +781,12 @@ button.shortcut {
 }
 
 .widget-pane-footer {
-  min-height: 48px;
+  min-height: 52px;
   justify-content: flex-end;
   border-top: 1px solid var(--line-soft);
   color: var(--faint);
   font-family: var(--font-mono);
-  font-size: 8px;
+  font-size: 9px;
 }
 
 .widget-pane-footer a {
@@ -852,8 +853,8 @@ button.shortcut {
 
 .github-repo > a {
   display: block;
-  min-height: 116px;
-  padding: 16px 22px 14px;
+  min-height: 122px;
+  padding: 17px 24px 15px;
   text-decoration: none;
   transition: background 140ms ease, color 140ms ease;
 }
@@ -873,7 +874,7 @@ button.shortcut {
   align-items: center;
   color: var(--faint);
   font-family: var(--font-mono);
-  font-size: 8px;
+  font-size: 9px;
 }
 
 .github-rank {
@@ -892,9 +893,9 @@ button.shortcut {
 }
 
 .github-repo h3 {
-  margin: 0 0 6px;
+  margin: 0 0 7px;
   overflow: hidden;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 800;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -902,12 +903,12 @@ button.shortcut {
 
 .github-repo p {
   display: -webkit-box;
-  min-height: 30px;
-  margin: 0 0 9px;
+  min-height: 32px;
+  margin: 0 0 10px;
   overflow: hidden;
   color: var(--muted);
-  font-size: 10px;
-  line-height: 1.5;
+  font-size: 11px;
+  line-height: 1.45;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
 }
@@ -924,7 +925,7 @@ button.shortcut {
   gap: 14px;
   color: var(--faint);
   font-family: var(--font-mono);
-  font-size: 8px;
+  font-size: 9px;
 }
 
 .github-stats span {
@@ -949,7 +950,7 @@ button.shortcut {
   place-content: center;
   color: var(--faint);
   font-family: var(--font-mono);
-  font-size: 9px;
+  font-size: 10px;
   text-align: center;
 }
 
@@ -971,8 +972,8 @@ button.shortcut {
 
 .hackernews-item > a {
   display: grid;
-  min-height: 108px;
-  padding: 16px 22px 15px;
+  min-height: 114px;
+  padding: 17px 24px 16px;
   align-content: center;
   text-decoration: none;
   transition: background 140ms ease, color 140ms ease;
@@ -993,7 +994,7 @@ button.shortcut {
   align-items: center;
   color: var(--faint);
   font-family: var(--font-mono);
-  font-size: 8px;
+  font-size: 9px;
 }
 
 .hackernews-rank {
@@ -1013,9 +1014,9 @@ button.shortcut {
 
 .hackernews-item h3 {
   display: -webkit-box;
-  margin: 0 0 8px;
+  margin: 0 0 9px;
   overflow: hidden;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 800;
   line-height: 1.35;
   -webkit-box-orient: vertical;
@@ -1026,7 +1027,7 @@ button.shortcut {
   margin: 0;
   color: var(--muted);
   font-family: var(--font-mono);
-  font-size: 8px;
+  font-size: 9px;
 }
 
 .hackernews-item > a:hover .hackernews-item-top,
@@ -1068,7 +1069,7 @@ button.shortcut {
   color: var(--muted);
   cursor: pointer;
   font-family: var(--font-mono);
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 700;
 }
 
@@ -1278,7 +1279,7 @@ dialog.is-open::backdrop {
   display: block;
   margin-bottom: 7px;
   color: var(--muted);
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
 }
 
@@ -1291,7 +1292,7 @@ dialog.is-open::backdrop {
   outline: 0;
   background: transparent;
   color: var(--ink);
-  font-size: 12px;
+  font-size: 13px;
 }
 
 .compact-field input:focus {
@@ -1353,7 +1354,7 @@ dialog.is-open::backdrop {
   height: 40px;
   place-items: center;
   color: var(--muted);
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
   transition: color 180ms ease;
 }
@@ -1416,7 +1417,7 @@ dialog.is-open::backdrop {
 .theme-name {
   min-width: 0;
   color: var(--muted);
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 700;
   line-height: 1.2;
 }
@@ -1501,7 +1502,7 @@ dialog.is-open::backdrop {
   margin-bottom: 5px;
   color: var(--faint);
   font-family: var(--font-mono);
-  font-size: 7px;
+  font-size: 8px;
   font-weight: 650;
   text-transform: uppercase;
 }
@@ -1509,7 +1510,7 @@ dialog.is-open::backdrop {
 .compact-field input {
   height: 36px;
   padding: 0 9px;
-  font-size: 10px;
+  font-size: 11px;
 }
 
 .color-field {
@@ -1550,7 +1551,7 @@ dialog.is-open::backdrop {
   background: transparent;
   color: var(--ink);
   cursor: pointer;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 750;
 }
 
@@ -1584,7 +1585,7 @@ dialog.is-open::backdrop {
 
 @media (max-width: 1080px) {
   .home-stage {
-    grid-template-columns: minmax(0, 1fr) 330px;
+    grid-template-columns: minmax(0, 1fr) 344px;
   }
 
   .home-stage.is-widget-collapsed {
@@ -1592,7 +1593,7 @@ dialog.is-open::backdrop {
   }
 
   .widget-sidebar {
-    width: 330px;
+    width: 344px;
   }
 
   .command-center {
@@ -1676,7 +1677,7 @@ dialog.is-open::backdrop {
   }
 
   .shortcut-label {
-    font-size: 9px;
+    font-size: 10px;
   }
 
   .widget-sidebar {

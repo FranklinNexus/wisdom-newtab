@@ -9,6 +9,7 @@
 - Added a polished open and close transition for the Settings panel.
 - Added a rolling latest package for Edge and manual installs without changing the store version.
 - Restored the saved theme before first paint to remove the warm-to-selected-theme flash.
+- Refined widget, shortcut, and settings typography for clearer hierarchy across desktop and narrow screens.
 
 ## 0.7.0 - 2026-07-27
 
