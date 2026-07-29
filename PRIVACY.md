@@ -22,7 +22,7 @@ The extension makes HTTPS requests only for its visible, user-facing features:
 
 - `api.github.com` provides public repository metadata for the GitHub Trending widget.
 - `hacker-news.firebaseio.com` provides public Hacker News story data.
-- When you submit a search, the search text is sent directly to the selected search provider as part of the destination URL.
+- When you submit a search, the text is passed to the browser's selected search provider through `chrome.search.query`; the extension does not choose or change the default provider.
 - When you open a shortcut or story, your browser navigates to that destination normally.
 
 The GitHub and Hacker News requests do not contain your shortcut configuration, search text, browsing history, or a developer-issued identifier.

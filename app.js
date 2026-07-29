@@ -42,7 +42,7 @@ const defaultSettings = {
 
 const copy = {
   en: {
-    search: "Search Google",
+    search: "Search the web",
     add: "Add",
     githubTitle: "Trending on GitHub",
     githubViewAll: "View all",
@@ -890,20 +890,43 @@ function closeSettings() {
 
 function searchTarget(rawQuery) {
   const value = rawQuery.trim();
-  const commandMatch = value.match(/^(g|gh|yt|mdn|npm|wiki)\s+(.+)$/i);
-  const commands = {
-    g: "https://www.google.com/search?q=",
-    gh: "https://github.com/search?q=",
-    yt: "https://www.youtube.com/results?search_query=",
-    mdn: "https://developer.mozilla.org/search?q=",
-    npm: "https://www.npmjs.com/search?q=",
-    wiki: "https://en.wikipedia.org/w/index.php?search="
-  };
-  if (commandMatch) return commands[commandMatch[1].toLowerCase()] + encodeURIComponent(commandMatch[2]);
   if (/^(https?:\/\/|[\w-]+\.[a-z]{2,})(\S*)$/i.test(value)) {
-    return /^https?:\/\//i.test(value) ? value : `https://${value}`;
+    return {
+      type: "url",
+      value: /^https?:\/\//i.test(value) ? value : `https://${value}`
+    };
   }
-  return `https://www.google.com/search?q=${encodeURIComponent(value)}`;
+  return { type: "search", value };
+}
+
+function fallbackSearchUrl(query) {
+  return `https://www.google.com/search?q=${encodeURIComponent(query)}`;
+}
+
+function submitToSelectedSearchEngine(query) {
+  const searchApi = globalThis.chrome?.search;
+  if (searchApi?.query) {
+    try {
+      searchApi.query({ text: query, disposition: "CURRENT_TAB" }, () => {
+        if (globalThis.chrome?.runtime?.lastError) {
+          elements.shortcutStatus.textContent = "Search is unavailable. Check your browser search settings.";
+          resetSearchNavigation();
+        }
+      });
+    } catch {
+      elements.shortcutStatus.textContent = "Search is unavailable. Check your browser search settings.";
+      resetSearchNavigation();
+    }
+    return;
+  }
+
+  if (globalThis.chrome?.runtime?.id) {
+    elements.shortcutStatus.textContent = "Search is unavailable. Check your browser search settings.";
+    resetSearchNavigation();
+    return;
+  }
+
+  window.location.assign(fallbackSearchUrl(query));
 }
 
 function resetSearchNavigation() {
@@ -915,19 +938,23 @@ function resetSearchNavigation() {
   elements.searchForm.setAttribute("aria-busy", "false");
 }
 
-function navigateFromSearch(url) {
+function navigateFromSearch(target) {
   if (searchNavigationPending) return;
   searchNavigationPending = true;
   elements.searchForm.classList.add("is-submitting");
   elements.searchForm.setAttribute("aria-busy", "true");
 
   if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-    window.location.assign(url);
+    if (target.type === "url") window.location.assign(target.value);
+    else submitToSelectedSearchEngine(target.value);
     return;
   }
 
   document.body.classList.add("is-navigating");
-  searchNavigationTimer = window.setTimeout(() => window.location.assign(url), SEARCH_NAVIGATION_DELAY_MS);
+  searchNavigationTimer = window.setTimeout(() => {
+    if (target.type === "url") window.location.assign(target.value);
+    else submitToSelectedSearchEngine(target.value);
+  }, SEARCH_NAVIGATION_DELAY_MS);
 }
 
 async function initialize() {

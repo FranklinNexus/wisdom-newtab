@@ -11,6 +11,7 @@
 - Restored the saved theme before first paint to remove the warm-to-selected-theme flash.
 - Refined widget, shortcut, and settings typography for clearer hierarchy across desktop and narrow screens.
 - Stabilized search depth, restored collapsed widgets before first paint, and added a restrained search exit transition.
+- Updated web search to use the browser-selected provider through Chrome Search API and removed custom search prefixes for single-purpose review compliance.
 
 ## 0.7.0 - 2026-07-27
 

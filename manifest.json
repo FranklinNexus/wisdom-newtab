@@ -10,7 +10,7 @@
     "48": "assets/extension/icon48.png",
     "128": "assets/extension/icon128.png"
   },
-  "permissions": ["storage"],
+  "permissions": ["search", "storage"],
   "host_permissions": [
     "https://api.github.com/*",
     "https://hacker-news.firebaseio.com/*"
