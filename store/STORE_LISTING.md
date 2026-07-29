@@ -1,6 +1,6 @@
 # Chrome Web Store Submission
 
-This file contains reviewer-ready text and the exact upload checklist for Wisdom New Tab 0.7.0.
+This file contains reviewer-ready text and the exact upload checklist for Wisdom New Tab 0.8.0.
 
 ## Product details
 
@@ -149,7 +149,7 @@ No account, paid service, API key, or special test credential is required.
 ## Submission order
 
 1. Register or open the Chrome Web Store developer account.
-2. Upload `wisdom-newtab-chrome-v0.7.0.zip` with `manifest.json` at the ZIP root.
+2. Upload `wisdom-newtab-chrome-v0.8.0.zip` with `manifest.json` at the ZIP root.
 3. Complete Store Listing using the text and images above.
 4. Complete Privacy practices using the permission explanations above.
 5. Set Distribution to free and public.

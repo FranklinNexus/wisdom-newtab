@@ -1781,6 +1781,7 @@ dialog.is-open::backdrop {
   max-height: 268px;
   overflow-y: auto;
   overscroll-behavior: contain;
+  scrollbar-gutter: stable;
 }
 
 .bookmark-state {
@@ -1797,7 +1798,7 @@ dialog.is-open::backdrop {
   display: grid;
   min-height: 58px;
   padding: 9px 12px;
-  grid-template-columns: 0 36px minmax(0, 1fr) 18px;
+  grid-template-columns: 36px minmax(0, 1fr) 18px;
   gap: 10px;
   align-items: center;
   border-bottom: 1px solid var(--line-soft);
@@ -1850,6 +1851,7 @@ dialog.is-open::backdrop {
   width: 17px;
   height: 17px;
   padding: 3px;
+  justify-self: end;
   border: 1px solid var(--line);
   border-radius: 4px;
   color: transparent;
@@ -1859,6 +1861,27 @@ dialog.is-open::backdrop {
   border-color: var(--ink);
   background: var(--ink);
   color: var(--paper);
+}
+
+.side-panel.is-importing .settings-section:not(#shortcut-settings),
+.side-panel.is-importing .shortcut-editor,
+.side-panel.is-importing #shortcut-add {
+  display: none;
+}
+
+.side-panel.is-importing #shortcut-settings {
+  padding-top: 20px;
+  padding-bottom: 20px;
+  border-bottom: 0;
+}
+
+.side-panel.is-importing .bookmark-importer {
+  margin-bottom: 0;
+}
+
+.side-panel.is-importing .bookmark-list {
+  height: clamp(180px, calc(100dvh - 400px), 320px);
+  max-height: none;
 }
 
 .bookmark-apply {

@@ -1154,6 +1154,7 @@ function readBrowserBookmarks() {
 
 async function openBookmarkImporter() {
   selectedBookmarkIds = new Set();
+  elements.settingsDialog.classList.add("is-importing");
   elements.bookmarkImporter.hidden = false;
   elements.bookmarkImport.disabled = true;
   renderBookmarkState("Connecting to browser bookmarks...");
@@ -1167,13 +1168,15 @@ async function openBookmarkImporter() {
   try {
     browserBookmarks = flattenBookmarkTree(await readBrowserBookmarks());
     renderBookmarkItems();
-    elements.bookmarkSearch.focus();
+    elements.shortcutSettings.scrollIntoView({ block: "start" });
+    elements.bookmarkSearch.focus({ preventScroll: true });
   } catch {
     renderBookmarkState("Browser bookmarks could not be loaded.");
   }
 }
 
 function closeBookmarkImporter() {
+  elements.settingsDialog.classList.remove("is-importing");
   elements.bookmarkImporter.hidden = true;
   elements.bookmarkSearch.value = "";
   elements.bookmarkList.replaceChildren();

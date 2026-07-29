@@ -83,6 +83,8 @@ Chrome Web Store fields, permission explanations, screenshot sizes, and an uploa
 
 Run `scripts/package-latest.ps1` to rebuild the rolling `wisdom-newtab-latest.zip` package without changing the manifest version.
 
+Run `scripts/package-store.ps1` to build the versioned Chrome Web Store upload ZIP from the current manifest version.
+
 GitHub Releases can distribute versions before store approval. The Chrome Web Store and Microsoft Edge Add-ons each require their own developer account and review; a GitHub Release is not store approval.
 
 The repository collaboration and GitHub-achievement guidance lives in [GITHUB_PLAYBOOK.md](GITHUB_PLAYBOOK.md). See [CHANGELOG.md](CHANGELOG.md) for version history.

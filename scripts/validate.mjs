@@ -107,6 +107,12 @@ await Promise.all([
 try {
   const source = await readFile("app.js", "utf8");
   new vm.Script(source, { filename: "app.js" });
+  if (!source.includes("bookmarkSearch.focus({ preventScroll: true })")) {
+    errors.push("Bookmark search focus must not scroll the settings panel");
+  }
+  if (!source.includes('settingsDialog.classList.add("is-importing")')) {
+    errors.push("Bookmark import must use the focused settings layout");
+  }
 } catch (error) {
   errors.push(`Invalid app.js: ${error.message}`);
 }
@@ -119,6 +125,13 @@ try {
 }
 
 const html = await readFile("newtab.html", "utf8").catch(() => "");
+const styles = await readFile("styles.css", "utf8").catch(() => "");
+if (styles && !/\.bookmark-item\s*\{[\s\S]*?grid-template-columns:\s*36px\s+minmax\(0,\s*1fr\)\s+18px\s*;/m.test(styles)) {
+  errors.push("Bookmark rows must reserve columns for the logo, copy, and selection control");
+}
+if (styles && !styles.includes(".side-panel.is-importing .shortcut-editor")) {
+  errors.push("Bookmark import must hide the shortcut editor while selecting bookmarks");
+}
 if (html && /<script(?![^>]*\bsrc=)/i.test(html)) {
   errors.push("Inline scripts are not allowed by the extension CSP");
 }
