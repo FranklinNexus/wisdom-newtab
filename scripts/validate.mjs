@@ -62,8 +62,9 @@ if (manifest) {
   }
 
   const permissions = manifest.permissions || [];
-  const unexpected = permissions.filter((permission) => permission !== "storage");
+  const unexpected = permissions.filter((permission) => !["search", "storage"].includes(permission));
   if (unexpected.length) errors.push(`Unexpected permissions: ${unexpected.join(", ")}`);
+  if (!permissions.includes("search")) errors.push("The search permission is required for the selected browser search engine API");
 }
 
 async function assertPngSize(path, expectedWidth, expectedHeight) {

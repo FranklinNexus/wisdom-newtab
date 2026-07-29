@@ -1,14 +1,13 @@
 # Wisdom New Tab
 
-A Chrome / Edge new-tab extension inspired by [WisdomEchoes](https://www.wisdomechoes.net/). It is a practical browser home page: central Google search, official site-logo shortcuts, a quiet settings control, and one switchable live widget sidebar.
+A Chrome / Edge new-tab extension inspired by [WisdomEchoes](https://www.wisdomechoes.net/). It is a practical browser home page: browser-selected web search, official site-logo shortcuts, a quiet settings control, and one switchable live widget sidebar.
 
 ![Wisdom New Tab preview](assets/preview.png)
 
 ## Features
 
 - Four restrained color themes: Warm, Porcelain, Sage, and Graphite.
-- A pill-shaped Google search field that opens typed URLs directly.
-- `g`, `gh`, `yt`, `mdn`, `npm`, and `wiki` search prefixes.
+- A pill-shaped web search field that uses the browser's selected search engine and opens typed URLs directly.
 - Adaptive official logo shortcuts for Blog, SurferGarage, and GitHub.
 - Up to ten local shortcuts with editable labels, URLs, and colors.
 - Press and hold any shortcut, or right-click it on desktop, to enter a restrained jiggle mode; use its X button to delete it, or click elsewhere to exit.
@@ -52,17 +51,9 @@ python -m http.server 4173 --bind 127.0.0.1
 
 Open `http://127.0.0.1:4173/newtab.html`. The normal web preview uses `localStorage`; the extension uses `chrome.storage.local`.
 
-## Search Prefixes
+## Search
 
-```text
-gh new tab extension   -> GitHub repositories and code
-mdn web extensions    -> MDN
-npm lucide             -> npm
-yt browser extension  -> YouTube
-wiki new tab page      -> Wikipedia
-```
-
-Google is used without a prefix. Press `/` or `Ctrl/Cmd + K` to focus search.
+Search submissions use the browser's currently selected search engine through `chrome.search.query`; the extension never changes the default provider. URLs typed into the field open directly. Press `/` or `Ctrl/Cmd + K` to focus search.
 
 ## Project Structure
 
@@ -81,7 +72,7 @@ store/                 Chrome Web Store copy and submission assets
 
 ## Privacy and Permissions
 
-The extension requests `storage` plus network access only to the GitHub API and Hacker News Firebase API for public project and story data. It does not read browsing history, inject scripts into other sites, send analytics, or load remote code. Search text is sent only to the selected destination after submission.
+The extension requests `search` and `storage` plus network access only to the GitHub API and Hacker News Firebase API for public project and story data. It does not read browsing history, inject scripts into other sites, send analytics, or load remote code. Search text is sent only to the browser-selected provider after submission; the extension never changes the default search engine.
 
 See [Privacy Policy](PRIVACY.md) for the complete policy.
 
