@@ -1,6 +1,6 @@
 # Wisdom New Tab
 
-A Chrome / Edge new-tab extension inspired by [WisdomEchoes](https://www.wisdomechoes.net/). It is a practical browser home page: browser-selected web search, official site-logo shortcuts, a quiet settings control, and one switchable live widget sidebar.
+A Chrome / Edge new-tab extension inspired by [WisdomEchoes](https://www.wisdomechoes.net/). It is a practical browser home page: browser-selected web search, automatic site-logo shortcuts, quiet settings controls, and one switchable live widget sidebar.
 
 ![Wisdom New Tab preview](assets/preview.png)
 
@@ -8,8 +8,9 @@ A Chrome / Edge new-tab extension inspired by [WisdomEchoes](https://www.wisdome
 
 - Four restrained color themes: Warm, Porcelain, Sage, and Graphite.
 - A pill-shaped web search field that uses the browser's selected search engine and opens typed URLs directly.
-- Adaptive official logo shortcuts for Blog, SurferGarage, and GitHub.
-- Up to ten local shortcuts with editable labels, URLs, and colors.
+- Automatic website favicon shortcuts, with bundled official logos for Blog, SurferGarage, and GitHub.
+- Up to ten local shortcuts with editable labels, URLs, colors, and custom uploaded logos.
+- Optional Chrome / Edge bookmark import with search, duplicate detection, and explicit multi-selection.
 - Press and hold any shortcut, or right-click it on desktop, to enter a restrained jiggle mode; use its X button to delete it, or click elsewhere to exit.
 - A single, collapsible widget sidebar for GitHub Trending, Hacker News, or a 25/5 focus timer.
 - A seven-day GitHub ranking with language, description, stars, and forks.
@@ -65,14 +66,14 @@ app.js                 Search, shortcuts, widgets, timer, settings, and storage
 theme-init.js          Restores the saved theme before the first visual paint
 assets/icons.svg       Trimmed Lucide icon set
 assets/extension/      Chrome / Edge extension icons
-assets/logos/          Official Blog, SurferGarage, and GitHub logos
+assets/logos/          Bundled Blog, SurferGarage, and GitHub logos
 scripts/validate.mjs   Zero-dependency project validation
 store/                 Chrome Web Store copy and submission assets
 ```
 
 ## Privacy and Permissions
 
-The extension requests `search` and `storage` plus network access only to the GitHub API and Hacker News Firebase API for public project and story data. It does not read browsing history, inject scripts into other sites, send analytics, or load remote code. Search text is sent only to the browser-selected provider after submission; the extension never changes the default search engine.
+The extension requests `favicon`, `search`, and `storage` plus network access only to the GitHub API and Hacker News Firebase API for public project and story data. The `bookmarks` permission is optional and requested only when you choose Import bookmarks; unselected bookmarks are not stored. It does not read browsing history, inject scripts into other sites, send analytics, or load remote code. Search text is sent only to the browser-selected provider after submission; the extension never changes the default search engine.
 
 See [Privacy Policy](PRIVACY.md) for the complete policy.
 

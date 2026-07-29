@@ -62,9 +62,15 @@ if (manifest) {
   }
 
   const permissions = manifest.permissions || [];
-  const unexpected = permissions.filter((permission) => !["search", "storage"].includes(permission));
+  const unexpected = permissions.filter((permission) => !["favicon", "search", "storage"].includes(permission));
   if (unexpected.length) errors.push(`Unexpected permissions: ${unexpected.join(", ")}`);
   if (!permissions.includes("search")) errors.push("The search permission is required for the selected browser search engine API");
+  if (!permissions.includes("favicon")) errors.push("The favicon permission is required for automatic website shortcut logos");
+
+  const optionalPermissions = manifest.optional_permissions || [];
+  const unexpectedOptional = optionalPermissions.filter((permission) => permission !== "bookmarks");
+  if (unexpectedOptional.length) errors.push(`Unexpected optional permissions: ${unexpectedOptional.join(", ")}`);
+  if (!optionalPermissions.includes("bookmarks")) errors.push("The bookmarks permission must remain optional");
 }
 
 async function assertPngSize(path, expectedWidth, expectedHeight) {

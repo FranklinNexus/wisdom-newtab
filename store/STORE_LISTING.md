@@ -31,6 +31,8 @@ Highlights:
 - Calm, responsive new tab layout
 - Search through the user's selected browser search engine
 - Editable local shortcuts
+- Automatic website favicons and optional custom shortcut logos
+- Optional import from the current Chrome or Edge bookmark collection
 - Public GitHub and Hacker News data
 - Local 25/5 focus timer
 - Collapsible single-widget sidebar
@@ -64,13 +66,25 @@ Replace the browser new tab page with a calm developer dashboard. Its single pur
 Permission justification for `storage`:
 
 ```text
-Stores the user's interface preferences, configured shortcut names and URLs, selected widget, collapsed state, local focus timer state, and short-lived caches of public GitHub and Hacker News data. The extension uses chrome.storage.local only and does not sync this data to a developer server.
+Stores the user's interface preferences, configured shortcut names, URLs, colors, optional custom logo images, selected widget, collapsed state, local focus timer state, and short-lived caches of public GitHub and Hacker News data. The extension uses chrome.storage.local only and does not sync this data to a developer server.
 ```
 
 Permission justification for `search`:
 
 ```text
 Uses chrome.search.query to submit text from the new-tab search field through the user's currently selected browser search engine. The extension does not set, replace, or modify the default search provider.
+```
+
+Permission justification for `favicon`:
+
+```text
+Uses Chrome's favicon service to show the website's own icon on each configured shortcut. The extension does not read browsing history or page content.
+```
+
+Optional permission justification for `bookmarks`:
+
+```text
+Requested only when the user selects Import bookmarks. It reads the current browser's bookmark tree for a local search and multi-select picker. Only bookmarks the user explicitly adds are stored as shortcuts; the extension does not create, edit, move, or delete browser bookmarks.
 ```
 
 Host permission justification for `https://api.github.com/*`:
@@ -94,7 +108,7 @@ No. The extension does not execute remote code. All JavaScript is packaged with 
 Data handling declaration:
 
 ```text
-The developer does not collect or retain user data. The extension handles user-configured shortcuts and preferences locally. Search text is passed to the browser-selected provider through Chrome Search API only after the user submits it. Public GitHub and Hacker News requests contain no user data. There are no analytics, ads, tracking identifiers, or background browsing-history collection.
+The developer does not collect or retain user data. The extension handles user-configured shortcuts, optional custom logos, and preferences locally. The optional bookmark picker reads the current browser's bookmark tree only after the user invokes it and stores only explicitly selected bookmarks as shortcuts. Search text is passed to the browser-selected provider through Chrome Search API only after the user submits it. Public GitHub and Hacker News requests contain no user data. There are no analytics, ads, tracking identifiers, or background browsing-history collection.
 ```
 
 Do not claim that the extension handles no data at all: Chrome's policy treats locally stored user settings as user-data handling. Answer the dashboard's standardized categories according to the exact wording shown there, and keep the declarations consistent with the public privacy policy.
@@ -127,6 +141,7 @@ https://github.com/FranklinNexus/wisdom-newtab/blob/main/PRIVACY.md
 4. Use the rightmost sidebar control to collapse the sidebar, then use the right-edge handle to reopen it.
 5. Open Settings to verify the Light / Dark preference persists after opening another new tab.
 6. Press and hold a shortcut until it jiggles; use its X button to delete it, then refresh to verify the deletion persists.
+7. Open shortcut management, verify website favicons, and choose Import bookmarks. Grant the optional permission, select one bookmark, add it, and save.
 
 No account, paid service, API key, or special test credential is required.
 ```

@@ -12,6 +12,9 @@
     <div class="app-shell">
       <header class="topbar">
         <div class="topbar-right">
+          <button class="tool-button" id="shortcuts-manage" type="button" aria-label="Manage shortcuts" aria-controls="settings-dialog" aria-expanded="false" aria-haspopup="dialog" title="Manage shortcuts">
+            <svg aria-hidden="true"><use href="assets/icons.svg#bookmark"></use></svg>
+          </button>
           <button class="tool-button" id="settings-open" type="button" aria-label="Open settings" aria-controls="settings-dialog" aria-expanded="false" aria-haspopup="dialog" title="Settings">
             <svg aria-hidden="true"><use href="assets/icons.svg#settings"></use></svg>
           </button>
@@ -176,7 +179,38 @@
           </section>
 
           <section class="settings-section" id="shortcut-settings" aria-labelledby="shortcuts-title">
-            <div class="section-label"><h3 id="shortcuts-title">Shortcuts</h3></div>
+            <div class="section-label section-label-row">
+              <div>
+                <h3 id="shortcuts-title">Shortcuts</h3>
+                <span class="shortcut-count" id="shortcut-count">0 / 10</span>
+              </div>
+              <button class="secondary-button compact-action" id="bookmark-import" type="button">
+                <svg aria-hidden="true"><use href="assets/icons.svg#bookmark-plus"></use></svg>
+                Import bookmarks
+              </button>
+            </div>
+
+            <div class="bookmark-importer" id="bookmark-importer" hidden>
+              <div class="bookmark-importer-header">
+                <label class="bookmark-search" for="bookmark-search">
+                  <svg aria-hidden="true"><use href="assets/icons.svg#search"></use></svg>
+                  <input id="bookmark-search" type="search" autocomplete="off" placeholder="Search bookmarks" />
+                </label>
+                <button class="tool-button" id="bookmark-import-close" type="button" aria-label="Close bookmark import" title="Close">
+                  <svg aria-hidden="true"><use href="assets/icons.svg#x"></use></svg>
+                </button>
+              </div>
+              <div class="bookmark-list" id="bookmark-list" role="group" aria-label="Browser bookmarks"></div>
+              <div class="bookmark-importer-footer">
+                <span id="bookmark-selection-count">0 selected</span>
+                <button class="primary-button bookmark-apply" id="bookmark-apply" type="button" disabled>
+                  Add selected
+                  <svg aria-hidden="true"><use href="assets/icons.svg#check"></use></svg>
+                </button>
+              </div>
+              <p class="sr-only" id="bookmark-status" aria-live="polite"></p>
+            </div>
+
             <div class="shortcut-editor" id="shortcut-editor"></div>
             <button class="secondary-button" id="shortcut-add" type="button">
               <svg aria-hidden="true"><use href="assets/icons.svg#plus"></use></svg>
@@ -240,6 +274,19 @@
 
     <template id="shortcut-editor-template">
       <div class="shortcut-row">
+        <div class="logo-editor">
+          <button class="logo-picker" type="button" aria-label="Choose custom logo" title="Choose custom logo">
+            <span class="logo-preview">
+              <img alt="" draggable="false" hidden />
+              <b></b>
+            </span>
+            <svg class="logo-edit-mark" aria-hidden="true"><use href="assets/icons.svg#image-up"></use></svg>
+          </button>
+          <input class="logo-file-input" data-field="logo-file" type="file" accept="image/png,image/jpeg,image/webp" hidden />
+          <button class="logo-auto tool-button" type="button" aria-label="Use website logo" title="Use website logo" hidden>
+            <svg aria-hidden="true"><use href="assets/icons.svg#rotate-ccw"></use></svg>
+          </button>
+        </div>
         <label class="compact-field">
           <span>Label</span>
           <input data-field="label" maxlength="28" />
@@ -256,6 +303,21 @@
           <svg aria-hidden="true"><use href="assets/icons.svg#trash"></use></svg>
         </button>
       </div>
+    </template>
+
+    <template id="bookmark-item-template">
+      <label class="bookmark-item">
+        <input type="checkbox" />
+        <span class="bookmark-logo">
+          <img alt="" draggable="false" hidden />
+          <b></b>
+        </span>
+        <span class="bookmark-copy">
+          <strong></strong>
+          <small></small>
+        </span>
+        <svg class="bookmark-check" aria-hidden="true"><use href="assets/icons.svg#check"></use></svg>
+      </label>
     </template>
 
     <script src="app.js"></script>

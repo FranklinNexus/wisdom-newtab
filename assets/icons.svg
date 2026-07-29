@@ -69,4 +69,13 @@
   <symbol id="rotate-ccw" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
     <path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/>
   </symbol>
+  <symbol id="bookmark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+  </symbol>
+  <symbol id="bookmark-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h7"/><path d="M15 7h6"/><path d="M18 4v6"/>
+  </symbol>
+  <symbol id="image-up" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M10.3 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v8.3"/><path d="m3 16 5-5c.9-.9 2.1-.9 3 0l3 3"/><circle cx="15" cy="8" r="2"/><path d="M19 22v-6"/><path d="m22 19-3-3-3 3"/>
+  </symbol>
 </svg>

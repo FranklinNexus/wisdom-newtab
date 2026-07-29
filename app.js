@@ -15,6 +15,9 @@ const REQUEST_TIMEOUT_MS = 12 * 1000;
 const SETTINGS_TRANSITION_MS = 320;
 const SEARCH_NAVIGATION_DELAY_MS = 160;
 const PALETTES = ["warm", "porcelain", "sage", "graphite"];
+const MAX_SHORTCUTS = 10;
+const MAX_LOGO_FILE_BYTES = 5 * 1024 * 1024;
+const MAX_STORED_LOGO_LENGTH = 400 * 1024;
 
 const brandLogos = [
   { id: "wisdomechoes", match: /wisdomechoes\.net/i, src: "assets/logos/wisdomechoes.png" },
@@ -115,7 +118,19 @@ const elements = {
   settingsDialog: document.querySelector("#settings-dialog"),
   settingsForm: document.querySelector("#settings-form"),
   settingsOpen: document.querySelector("#settings-open"),
+  shortcutsManage: document.querySelector("#shortcuts-manage"),
   paletteInputs: [...document.querySelectorAll('input[name="palette"]')],
+  bookmarkApply: document.querySelector("#bookmark-apply"),
+  bookmarkImport: document.querySelector("#bookmark-import"),
+  bookmarkImportClose: document.querySelector("#bookmark-import-close"),
+  bookmarkImporter: document.querySelector("#bookmark-importer"),
+  bookmarkItemTemplate: document.querySelector("#bookmark-item-template"),
+  bookmarkList: document.querySelector("#bookmark-list"),
+  bookmarkSearch: document.querySelector("#bookmark-search"),
+  bookmarkSelectionCount: document.querySelector("#bookmark-selection-count"),
+  bookmarkStatus: document.querySelector("#bookmark-status"),
+  shortcutAdd: document.querySelector("#shortcut-add"),
+  shortcutCount: document.querySelector("#shortcut-count"),
   shortcutEditor: document.querySelector("#shortcut-editor"),
   shortcutEditorTemplate: document.querySelector("#shortcut-editor-template"),
   shortcutGrid: document.querySelector("#shortcut-grid"),
@@ -158,6 +173,8 @@ let settingsDialogClosing = false;
 let settingsReturnFocus;
 let searchNavigationTimer;
 let searchNavigationPending = false;
+let browserBookmarks = [];
+let selectedBookmarkIds = new Set();
 
 function normalizeUrl(value) {
   const trimmed = String(value || "").trim();
@@ -173,6 +190,14 @@ function normalizeUrl(value) {
 
 function safeColor(value, fallback = "#29282c") {
   return /^#[0-9a-f]{6}$/i.test(String(value || "")) ? value : fallback;
+}
+
+function safeCustomLogo(value) {
+  const logo = String(value || "");
+  return /^data:image\/(?:png|jpeg|webp);base64,[a-z0-9+/=]+$/i.test(logo)
+    && logo.length <= MAX_STORED_LOGO_LENGTH
+    ? logo
+    : "";
 }
 
 function cachedAppearance() {
@@ -218,7 +243,7 @@ function sanitizeSettings(candidate) {
   const legacyLinks = Array.isArray(value.links) ? value.links : [];
   const rawShortcuts = Array.isArray(value.shortcuts) ? value.shortcuts : legacyLinks;
   const shortcuts = rawShortcuts.length
-    ? rawShortcuts.slice(0, 10).map((item, index) => {
+    ? rawShortcuts.slice(0, MAX_SHORTCUTS).map((item, index) => {
         const id = String(item.id || `shortcut-${Date.now()}-${index}`);
         const rawLabel = String(item.label || "Untitled").slice(0, 28);
         const labelMigration = shortcutLabelMigrations[id];
@@ -226,7 +251,8 @@ function sanitizeSettings(candidate) {
           id,
           label: labelMigration?.from === rawLabel ? labelMigration.to : rawLabel,
           url: normalizeUrl(item.url),
-          color: safeColor(item.color, ["#29282c", "#ef4f35", "#171717", "#3d5c91"][index % 4])
+          color: safeColor(item.color, ["#29282c", "#ef4f35", "#171717", "#3d5c91"][index % 4]),
+          logo: safeCustomLogo(item.logo)
         };
       }).filter((item) => item.label)
     : structuredClone(defaultSettings.shortcuts);
@@ -252,44 +278,87 @@ function brandLogoFor(url) {
   return brandLogos.find((logo) => logo.match.test(url));
 }
 
+function automaticFaviconUrl(url) {
+  const normalized = normalizeUrl(url);
+  if (!normalized) return "";
+  if (globalThis.chrome?.runtime?.getURL) {
+    return `${chrome.runtime.getURL("_favicon/")}?pageUrl=${encodeURIComponent(normalized)}&size=64`;
+  }
+  try {
+    return new URL("/favicon.ico", normalized).href;
+  } catch {
+    return "";
+  }
+}
+
+function logoSourceFor(shortcut) {
+  const customLogo = safeCustomLogo(shortcut.logo);
+  if (customLogo) return { src: customLogo, kind: "custom" };
+  const brand = brandLogoFor(shortcut.url);
+  if (brand) return { src: brand.src, kind: "brand", brand: brand.id };
+  const favicon = automaticFaviconUrl(shortcut.url);
+  return favicon ? { src: favicon, kind: "favicon" } : null;
+}
+
+function paintShortcutLogo(container, image, fallback, shortcut) {
+  const source = logoSourceFor(shortcut);
+  const revealFallback = () => {
+    image.hidden = true;
+    fallback.hidden = false;
+    container.classList.remove("has-logo");
+  };
+  const revealImage = () => {
+    image.hidden = false;
+    fallback.hidden = true;
+    container.classList.add("has-logo");
+  };
+
+  fallback.textContent = iconText(shortcut);
+  image.onload = revealImage;
+  image.onerror = revealFallback;
+  revealFallback();
+  if (!source) {
+    image.removeAttribute("src");
+    return;
+  }
+
+  if (source.brand) container.dataset.brand = source.brand;
+  else delete container.dataset.brand;
+  image.src = source.src;
+  if (image.complete && image.naturalWidth > 0) revealImage();
+}
+
 function renderShortcuts() {
   elements.shortcutGrid.replaceChildren();
 
-  settings.shortcuts.slice(0, 7).forEach((shortcut) => {
+  settings.shortcuts.slice(0, MAX_SHORTCUTS).forEach((shortcut) => {
     const item = elements.shortcutTemplate.content.firstElementChild.cloneNode(true);
     const tile = item.querySelector(".shortcut");
     const deleteButton = item.querySelector(".shortcut-delete");
     item.dataset.shortcutId = shortcut.id;
     tile.href = shortcut.url;
     tile.style.setProperty("--shortcut-color", shortcut.color);
-    const brand = brandLogoFor(shortcut.url);
     const image = tile.querySelector(".shortcut-logo");
     const fallback = tile.querySelector(".shortcut-icon b");
-    if (brand) {
-      tile.classList.add("has-logo");
-      tile.dataset.brand = brand.id;
-      image.src = brand.src;
-      image.hidden = false;
-      fallback.hidden = true;
-    } else {
-      fallback.textContent = iconText(shortcut);
-    }
+    paintShortcutLogo(tile, image, fallback, shortcut);
     tile.querySelector(".shortcut-label").textContent = shortcut.label;
     deleteButton.setAttribute("aria-label", `Delete ${shortcut.label}`);
     deleteButton.title = `Delete ${shortcut.label}`;
     elements.shortcutGrid.append(item);
   });
 
-  const add = document.createElement("button");
-  add.type = "button";
-  add.className = "shortcut shortcut-add";
-  add.setAttribute("aria-label", "Add shortcut");
-  add.innerHTML = `
-    <span class="shortcut-icon"><svg aria-hidden="true"><use href="assets/icons.svg#plus"></use></svg></span>
-    <span class="shortcut-label">${copy[settings.locale].add}</span>
-  `;
-  add.addEventListener("click", () => openSettings(true));
-  elements.shortcutGrid.append(add);
+  if (settings.shortcuts.length < MAX_SHORTCUTS) {
+    const add = document.createElement("button");
+    add.type = "button";
+    add.className = "shortcut shortcut-add";
+    add.setAttribute("aria-label", "Add shortcut");
+    add.innerHTML = `
+      <span class="shortcut-icon"><svg aria-hidden="true"><use href="assets/icons.svg#plus"></use></svg></span>
+      <span class="shortcut-label">${copy[settings.locale].add}</span>
+    `;
+    add.addEventListener("click", () => openSettings(true));
+    elements.shortcutGrid.append(add);
+  }
   setShortcutEditMode(shortcutEditMode);
 }
 
@@ -813,17 +882,56 @@ function renderSettings() {
 
   elements.shortcutEditor.replaceChildren();
   settings.shortcuts.forEach((shortcut) => addEditorRow(shortcut));
+  closeBookmarkImporter();
+  updateShortcutEditorState();
 }
 
 function addEditorRow(shortcut = {}) {
-  if (elements.shortcutEditor.children.length >= 10) return;
+  if (elements.shortcutEditor.children.length >= MAX_SHORTCUTS) return false;
   const row = elements.shortcutEditorTemplate.content.firstElementChild.cloneNode(true);
   row.dataset.id = shortcut.id || `shortcut-${Date.now()}-${Math.random().toString(16).slice(2)}`;
-  row.querySelector('[data-field="label"]').value = shortcut.label || "";
-  row.querySelector('[data-field="url"]').value = shortcut.url || "";
+  row.logo = safeCustomLogo(shortcut.logo);
+  const labelInput = row.querySelector('[data-field="label"]');
+  const urlInput = row.querySelector('[data-field="url"]');
+  const fileInput = row.querySelector('[data-field="logo-file"]');
+  labelInput.value = shortcut.label || "";
+  urlInput.value = shortcut.url || "";
   row.querySelector('[data-field="color"]').value = safeColor(shortcut.color, "#29282c");
-  row.querySelector(".remove-shortcut").addEventListener("click", () => row.remove());
+  row.querySelector(".remove-shortcut").addEventListener("click", () => {
+    row.remove();
+    updateShortcutEditorState();
+    if (!elements.bookmarkImporter.hidden) renderBookmarkItems();
+  });
+  row.querySelector(".logo-picker").addEventListener("click", () => fileInput.click());
+  row.querySelector(".logo-auto").addEventListener("click", () => {
+    row.logo = "";
+    renderEditorLogo(row);
+    elements.shortcutStatus.textContent = `${labelInput.value.trim() || "Shortcut"} now uses its website logo.`;
+  });
+  fileInput.addEventListener("change", async () => {
+    const [file] = fileInput.files || [];
+    if (!file) return;
+    try {
+      row.logo = await prepareCustomLogo(file);
+      renderEditorLogo(row);
+      elements.shortcutStatus.textContent = `${labelInput.value.trim() || "Shortcut"} logo updated.`;
+    } catch (error) {
+      elements.shortcutStatus.textContent = error.message;
+    } finally {
+      fileInput.value = "";
+    }
+  });
+  let previewTimer;
+  const refreshPreview = () => {
+    clearTimeout(previewTimer);
+    previewTimer = window.setTimeout(() => renderEditorLogo(row), 180);
+  };
+  urlInput.addEventListener("input", refreshPreview);
+  labelInput.addEventListener("input", refreshPreview);
   elements.shortcutEditor.append(row);
+  renderEditorLogo(row);
+  updateShortcutEditorState();
+  return true;
 }
 
 function collectShortcuts() {
@@ -832,9 +940,262 @@ function collectShortcuts() {
       id: row.dataset.id,
       label: row.querySelector('[data-field="label"]').value.trim(),
       url: normalizeUrl(row.querySelector('[data-field="url"]').value),
-      color: safeColor(row.querySelector('[data-field="color"]').value)
+      color: safeColor(row.querySelector('[data-field="color"]').value),
+      logo: safeCustomLogo(row.logo)
     }))
     .filter((shortcut) => shortcut.label && shortcut.url);
+}
+
+function renderEditorLogo(row) {
+  const preview = row.querySelector(".logo-preview");
+  const image = preview.querySelector("img");
+  const fallback = preview.querySelector("b");
+  const shortcut = {
+    label: row.querySelector('[data-field="label"]').value.trim() || "Shortcut",
+    url: row.querySelector('[data-field="url"]').value,
+    logo: row.logo
+  };
+  paintShortcutLogo(preview, image, fallback, shortcut);
+  row.querySelector(".logo-auto").hidden = !safeCustomLogo(row.logo);
+}
+
+function prepareCustomLogo(file) {
+  if (!/^image\/(?:png|jpeg|webp)$/i.test(file.type)) {
+    return Promise.reject(new Error("Choose a PNG, JPG, or WebP image."));
+  }
+  if (file.size > MAX_LOGO_FILE_BYTES) {
+    return Promise.reject(new Error("The logo image must be smaller than 5 MB."));
+  }
+
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    const objectUrl = URL.createObjectURL(file);
+    image.onload = () => {
+      URL.revokeObjectURL(objectUrl);
+      const canvas = document.createElement("canvas");
+      canvas.width = 128;
+      canvas.height = 128;
+      const context = canvas.getContext("2d");
+      const scale = Math.min(112 / image.naturalWidth, 112 / image.naturalHeight);
+      const width = Math.max(1, Math.round(image.naturalWidth * scale));
+      const height = Math.max(1, Math.round(image.naturalHeight * scale));
+      context.drawImage(image, Math.round((128 - width) / 2), Math.round((128 - height) / 2), width, height);
+      const logo = canvas.toDataURL("image/png");
+      if (!safeCustomLogo(logo)) {
+        reject(new Error("The processed logo is too large to store."));
+        return;
+      }
+      resolve(logo);
+    };
+    image.onerror = () => {
+      URL.revokeObjectURL(objectUrl);
+      reject(new Error("The logo image could not be read."));
+    };
+    image.src = objectUrl;
+  });
+}
+
+function updateShortcutEditorState() {
+  const count = elements.shortcutEditor.children.length;
+  elements.shortcutCount.textContent = `${count} / ${MAX_SHORTCUTS}`;
+  elements.shortcutAdd.disabled = count >= MAX_SHORTCUTS;
+  elements.bookmarkImport.disabled = count >= MAX_SHORTCUTS || !elements.bookmarkImporter.hidden;
+}
+
+function colorForUrl(url) {
+  const colors = ["#29282c", "#3d5c91", "#2f7a56", "#8f4d38", "#6c4f8b", "#2563c9"];
+  let host = url;
+  try {
+    host = new URL(url).hostname;
+  } catch {
+    // The sanitized bookmark URL is used as a stable fallback.
+  }
+  const hash = [...host].reduce((value, character) => ((value * 31) + character.charCodeAt(0)) >>> 0, 0);
+  return colors[hash % colors.length];
+}
+
+function flattenBookmarkTree(nodes, path = [], output = []) {
+  nodes.forEach((node) => {
+    if (node.url) {
+      const url = normalizeUrl(node.url);
+      if (url) {
+        output.push({
+          id: String(node.id),
+          title: String(node.title || new URL(url).hostname).slice(0, 80),
+          url,
+          folder: path.filter(Boolean).join(" / ")
+        });
+      }
+      return;
+    }
+    const nextPath = node.title ? [...path, String(node.title)] : path;
+    if (Array.isArray(node.children)) flattenBookmarkTree(node.children, nextPath, output);
+  });
+  return output;
+}
+
+function renderBookmarkState(message, preserveSelection = false) {
+  elements.bookmarkList.replaceChildren();
+  const state = document.createElement("p");
+  state.className = "bookmark-state";
+  state.textContent = message;
+  elements.bookmarkList.append(state);
+  if (!preserveSelection) selectedBookmarkIds = new Set();
+  const available = Math.max(0, MAX_SHORTCUTS - elements.shortcutEditor.children.length);
+  elements.bookmarkApply.disabled = selectedBookmarkIds.size === 0;
+  elements.bookmarkSelectionCount.textContent = preserveSelection
+    ? `${selectedBookmarkIds.size} selected · ${available} available`
+    : "0 selected";
+}
+
+function renderBookmarkItems() {
+  const query = elements.bookmarkSearch.value.trim().toLowerCase();
+  const existingUrls = new Set(collectShortcuts().map((shortcut) => shortcut.url));
+  const matches = browserBookmarks.filter((bookmark) => {
+    if (!query) return true;
+    return `${bookmark.title} ${bookmark.url} ${bookmark.folder}`.toLowerCase().includes(query);
+  });
+  elements.bookmarkList.replaceChildren();
+  if (!matches.length) {
+    renderBookmarkState(query ? "No matching bookmarks." : "No browser bookmarks found.", Boolean(query));
+    return;
+  }
+
+  const fragment = document.createDocumentFragment();
+  matches.forEach((bookmark) => {
+    const item = elements.bookmarkItemTemplate.content.firstElementChild.cloneNode(true);
+    const checkbox = item.querySelector("input");
+    const duplicate = existingUrls.has(bookmark.url);
+    item.dataset.bookmarkId = bookmark.id;
+    checkbox.checked = selectedBookmarkIds.has(bookmark.id);
+    checkbox.disabled = duplicate;
+    item.classList.toggle("is-duplicate", duplicate);
+    item.querySelector("strong").textContent = bookmark.title;
+    let host = bookmark.url;
+    try {
+      host = new URL(bookmark.url).hostname.replace(/^www\./, "");
+    } catch {
+      // Keep the URL when a hostname cannot be derived.
+    }
+    item.querySelector("small").textContent = duplicate
+      ? "Already added"
+      : [bookmark.folder, host].filter(Boolean).join(" · ");
+    paintShortcutLogo(
+      item.querySelector(".bookmark-logo"),
+      item.querySelector(".bookmark-logo img"),
+      item.querySelector(".bookmark-logo b"),
+      { label: bookmark.title, url: bookmark.url }
+    );
+    checkbox.addEventListener("change", updateBookmarkSelection);
+    fragment.append(item);
+  });
+  elements.bookmarkList.append(fragment);
+  updateBookmarkSelection();
+}
+
+function updateBookmarkSelection(event) {
+  const available = Math.max(0, MAX_SHORTCUTS - elements.shortcutEditor.children.length);
+  if (event?.target) {
+    const bookmarkId = event.target.closest(".bookmark-item")?.dataset.bookmarkId;
+    if (event.target.checked && selectedBookmarkIds.size >= available) {
+      event.target.checked = false;
+      elements.bookmarkStatus.textContent = `You can add ${available} more shortcut${available === 1 ? "" : "s"}.`;
+    } else if (bookmarkId) {
+      if (event.target.checked) selectedBookmarkIds.add(bookmarkId);
+      else selectedBookmarkIds.delete(bookmarkId);
+    }
+  }
+  if (selectedBookmarkIds.size > available) {
+    selectedBookmarkIds = new Set([...selectedBookmarkIds].slice(0, available));
+  }
+  elements.bookmarkList.querySelectorAll('input[type="checkbox"]').forEach((checkbox) => {
+    const item = checkbox.closest(".bookmark-item");
+    const id = item?.dataset.bookmarkId;
+    checkbox.checked = selectedBookmarkIds.has(id);
+    checkbox.disabled = item?.classList.contains("is-duplicate")
+      || (!checkbox.checked && selectedBookmarkIds.size >= available);
+  });
+  elements.bookmarkSelectionCount.textContent = `${selectedBookmarkIds.size} selected · ${available} available`;
+  elements.bookmarkApply.disabled = selectedBookmarkIds.size === 0;
+}
+
+function requestBookmarkPermission() {
+  return new Promise((resolve) => {
+    if (!globalThis.chrome?.permissions?.request) {
+      resolve(false);
+      return;
+    }
+    chrome.permissions.request({ permissions: ["bookmarks"] }, (granted) => {
+      if (chrome.runtime?.lastError) {
+        resolve(false);
+        return;
+      }
+      resolve(Boolean(granted));
+    });
+  });
+}
+
+function readBrowserBookmarks() {
+  return new Promise((resolve, reject) => {
+    if (!globalThis.chrome?.bookmarks?.getTree) {
+      reject(new Error("Bookmark access is unavailable."));
+      return;
+    }
+    chrome.bookmarks.getTree((tree) => {
+      const error = chrome.runtime?.lastError;
+      if (error) {
+        reject(new Error(error.message));
+        return;
+      }
+      resolve(tree || []);
+    });
+  });
+}
+
+async function openBookmarkImporter() {
+  selectedBookmarkIds = new Set();
+  elements.bookmarkImporter.hidden = false;
+  elements.bookmarkImport.disabled = true;
+  renderBookmarkState("Connecting to browser bookmarks...");
+  const granted = await requestBookmarkPermission();
+  if (!granted) {
+    renderBookmarkState(globalThis.chrome?.runtime
+      ? "Bookmark access was not granted."
+      : "Bookmark import is available in the installed Chrome or Edge extension.");
+    return;
+  }
+  try {
+    browserBookmarks = flattenBookmarkTree(await readBrowserBookmarks());
+    renderBookmarkItems();
+    elements.bookmarkSearch.focus();
+  } catch {
+    renderBookmarkState("Browser bookmarks could not be loaded.");
+  }
+}
+
+function closeBookmarkImporter() {
+  elements.bookmarkImporter.hidden = true;
+  elements.bookmarkSearch.value = "";
+  elements.bookmarkList.replaceChildren();
+  selectedBookmarkIds = new Set();
+  elements.bookmarkImport.disabled = elements.shortcutEditor.children.length >= MAX_SHORTCUTS;
+}
+
+function applySelectedBookmarks() {
+  const selectedIds = new Set(selectedBookmarkIds);
+  let added = 0;
+  browserBookmarks.forEach((bookmark) => {
+    if (!selectedIds.has(bookmark.id) || elements.shortcutEditor.children.length >= MAX_SHORTCUTS) return;
+    if (addEditorRow({
+      id: `bookmark-${bookmark.id}`,
+      label: bookmark.title.slice(0, 28),
+      url: bookmark.url,
+      color: colorForUrl(bookmark.url)
+    })) added += 1;
+  });
+  closeBookmarkImporter();
+  elements.bookmarkStatus.textContent = `${added} bookmark${added === 1 ? "" : "s"} added.`;
+  updateShortcutEditorState();
 }
 
 function openSettings(shortcutsOnly = false) {
@@ -845,8 +1206,10 @@ function openSettings(shortcutsOnly = false) {
   settingsDialogClosing = false;
   clearTimeout(settingsCloseTimer);
   elements.settingsDialog.classList.remove("is-open", "is-closing");
-  elements.settingsOpen.classList.add("is-active");
-  elements.settingsOpen.setAttribute("aria-expanded", "true");
+  elements.settingsOpen.classList.toggle("is-active", !shortcutsOnly);
+  elements.shortcutsManage.classList.toggle("is-active", shortcutsOnly);
+  elements.settingsOpen.setAttribute("aria-expanded", String(!shortcutsOnly));
+  elements.shortcutsManage.setAttribute("aria-expanded", String(shortcutsOnly));
 
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   if (reducedMotion) elements.settingsDialog.classList.add("is-open");
@@ -866,7 +1229,9 @@ function finishSettingsClose() {
   elements.settingsDialog.close();
   elements.settingsDialog.classList.remove("is-open", "is-closing");
   elements.settingsOpen.classList.remove("is-active");
+  elements.shortcutsManage.classList.remove("is-active");
   elements.settingsOpen.setAttribute("aria-expanded", "false");
+  elements.shortcutsManage.setAttribute("aria-expanded", "false");
   settingsDialogClosing = false;
   const returnFocus = settingsReturnFocus;
   settingsReturnFocus = undefined;
@@ -884,7 +1249,9 @@ function closeSettings() {
   elements.settingsDialog.classList.add("is-closing");
   elements.settingsDialog.classList.remove("is-open");
   elements.settingsOpen.classList.remove("is-active");
+  elements.shortcutsManage.classList.remove("is-active");
   elements.settingsOpen.setAttribute("aria-expanded", "false");
+  elements.shortcutsManage.setAttribute("aria-expanded", "false");
   settingsCloseTimer = window.setTimeout(finishSettingsClose, SETTINGS_TRANSITION_MS + 80);
 }
 
@@ -979,8 +1346,16 @@ elements.searchForm.addEventListener("submit", (event) => {
 window.addEventListener("pageshow", resetSearchNavigation);
 
 elements.settingsOpen.addEventListener("click", () => openSettings(false));
+elements.shortcutsManage.addEventListener("click", () => openSettings(true));
 document.querySelector("#settings-close").addEventListener("click", closeSettings);
-document.querySelector("#shortcut-add").addEventListener("click", () => addEditorRow({ color: "#3d5c91" }));
+elements.shortcutAdd.addEventListener("click", () => {
+  if (!elements.bookmarkImporter.hidden) closeBookmarkImporter();
+  addEditorRow({ color: "#3d5c91" });
+});
+elements.bookmarkImport.addEventListener("click", openBookmarkImporter);
+elements.bookmarkImportClose.addEventListener("click", closeBookmarkImporter);
+elements.bookmarkApply.addEventListener("click", applySelectedBookmarks);
+elements.bookmarkSearch.addEventListener("input", renderBookmarkItems);
 
 elements.surfaceInputs.forEach((input) => {
   input.addEventListener("change", () => {

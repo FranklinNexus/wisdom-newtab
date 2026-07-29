@@ -90,11 +90,11 @@
     <header><div><span class="mark" aria-hidden="true">W</span><strong>Wisdom New Tab</strong></div></header>
     <main>
       <h1>Privacy Policy</h1>
-      <p class="effective">Effective July 27, 2026</p>
+      <p class="effective">Effective July 29, 2026</p>
       <p>Wisdom New Tab replaces the browser new tab page with search, shortcuts, public developer news, and a local focus timer. This policy explains the limited data the extension handles.</p>
 
       <h2>Data stored on your device</h2>
-      <p>The extension uses <code>chrome.storage.local</code> to save interface preferences, shortcut names and URLs, widget state, cached public GitHub and Hacker News results, and focus timer state. This information stays in your browser profile. The developer does not receive or maintain a server-side copy.</p>
+      <p>The extension uses <code>chrome.storage.local</code> to save interface preferences, shortcut names, URLs, colors and optional custom logo images, widget state, cached public GitHub and Hacker News results, and focus timer state. This information stays in your browser profile. The developer does not receive or maintain a server-side copy.</p>
 
       <h2>Network requests</h2>
       <ul>
@@ -104,6 +104,7 @@
         <li>Opening a shortcut or story navigates your browser to that destination normally.</li>
       </ul>
       <p>GitHub and Hacker News requests do not contain shortcut settings, search text, browsing history, or a developer-issued identifier.</p>
+      <p>Website shortcut icons come from the browser's favicon service. If you choose <strong>Import bookmarks</strong>, the extension asks for bookmark access at that moment and stores only bookmarks you explicitly add as shortcuts. Bookmark folders and unselected bookmarks are not copied into extension storage or sent anywhere.</p>
 
       <h2>Data the developer does not collect</h2>
       <p>The extension does not collect analytics, advertising identifiers, browsing history, passwords, authentication data, financial information, health information, precise location, personal communications, or content from pages you visit. It does not inject scripts into other websites and does not sell or share user data for advertising or profiling.</p>
@@ -111,6 +112,9 @@
       <h2>Permissions</h2>
       <ul>
         <li><code>storage</code> stores settings, shortcuts, timer state, and public-data caches locally.</li>
+        <li><code>favicon</code> displays website icons available through the browser's favicon service.</li>
+        <li><code>search</code> submits text through the browser's selected search provider without changing it.</li>
+        <li><code>bookmarks</code> is optional and requested only after you select <strong>Import bookmarks</strong>. It reads bookmarks for the local picker and does not create, edit, move, or delete them.</li>
         <li>GitHub API access is limited to public repository data used by the GitHub widget.</li>
         <li>Hacker News API access is limited to public story data used by the Hacker News widget.</li>
       </ul>

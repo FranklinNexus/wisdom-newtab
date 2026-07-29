@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Added automatic website favicons for shortcuts, with a letter fallback only when no icon is available.
+- Added per-shortcut custom logo uploads and a top-right shortcut-management entry point.
+- Added optional Chrome / Edge bookmark import with search, multi-select, duplicate detection, and local-only handling.
 - Replaced decorative settings labels and section numbers with a cleaner product-style hierarchy.
 - Added Warm, Porcelain, Sage, and Graphite theme palettes, each with Light and Dark variants.
 - Added immediate animated palette switching with persistent browser storage.
