@@ -7,7 +7,7 @@ A Chrome / Edge new-tab extension inspired by [WisdomEchoes](https://www.wisdome
 ## Features
 
 - Four restrained color themes: Warm, Porcelain, Sage, and Graphite.
-- A pill-shaped web search field that uses the browser's selected search engine and opens typed URLs directly.
+- A pill-shaped web search field that uses only the browser's selected search engine.
 - Automatic website favicon shortcuts, with bundled official logos for Blog, SurferGarage, and GitHub.
 - Up to ten local shortcuts with editable labels, URLs, colors, and custom uploaded logos.
 - Optional Chrome / Edge bookmark import with search, duplicate detection, and explicit multi-selection.
@@ -54,7 +54,7 @@ Open `http://127.0.0.1:4173/newtab.html`. The normal web preview uses `localStor
 
 ## Search
 
-Search submissions use the browser's currently selected search engine through `chrome.search.query`; the extension never changes the default provider. URLs typed into the field open directly. Press `/` or `Ctrl/Cmd + K` to focus search.
+Every search submission uses the browser's currently selected search engine through `chrome.search.query`; the extension never chooses or changes the provider and has no provider-specific fallback. If Chrome Search API is unavailable, the extension performs no search. Press `/` or `Ctrl/Cmd + K` to focus search.
 
 ## Project Structure
 

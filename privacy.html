@@ -100,7 +100,7 @@
       <ul>
         <li><code>api.github.com</code> provides public repository metadata for the GitHub Trending widget.</li>
         <li><code>hacker-news.firebaseio.com</code> provides public Hacker News story data.</li>
-        <li>Submitted search text is passed to the browser's selected search provider through <code>chrome.search.query</code>; the extension does not choose or change the default provider.</li>
+        <li>Submitted search text is passed to the browser's selected search provider exclusively through <code>chrome.search.query</code>; the extension does not choose or change the default provider and has no provider-specific fallback.</li>
         <li>Opening a shortcut or story navigates your browser to that destination normally.</li>
       </ul>
       <p>GitHub and Hacker News requests do not contain shortcut settings, search text, browsing history, or a developer-issued identifier.</p>
@@ -113,7 +113,7 @@
       <ul>
         <li><code>storage</code> stores settings, shortcuts, timer state, and public-data caches locally.</li>
         <li><code>favicon</code> displays website icons available through the browser's favicon service.</li>
-        <li><code>search</code> submits text through the browser's selected search provider without changing it.</li>
+        <li><code>search</code> submits text exclusively through the browser's selected search provider without changing it. If Chrome Search API is unavailable, no alternate provider is used.</li>
         <li><code>bookmarks</code> is optional and requested only after you select <strong>Import bookmarks</strong>. It reads bookmarks for the local picker and does not create, edit, move, or delete them.</li>
         <li>GitHub API access is limited to public repository data used by the GitHub widget.</li>
         <li>Hacker News API access is limited to public story data used by the Hacker News widget.</li>

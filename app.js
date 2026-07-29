@@ -1258,45 +1258,22 @@ function closeSettings() {
   settingsCloseTimer = window.setTimeout(finishSettingsClose, SETTINGS_TRANSITION_MS + 80);
 }
 
-function searchTarget(rawQuery) {
-  const value = rawQuery.trim();
-  if (/^(https?:\/\/|[\w-]+\.[a-z]{2,})(\S*)$/i.test(value)) {
-    return {
-      type: "url",
-      value: /^https?:\/\//i.test(value) ? value : `https://${value}`
-    };
-  }
-  return { type: "search", value };
+function reportSearchUnavailable() {
+  elements.shortcutStatus.textContent = "Search is unavailable. Check your browser search settings.";
+  resetSearchNavigation();
 }
 
-function fallbackSearchUrl(query) {
-  return `https://www.google.com/search?q=${encodeURIComponent(query)}`;
-}
-
-function submitToSelectedSearchEngine(query) {
-  const searchApi = globalThis.chrome?.search;
-  if (searchApi?.query) {
-    try {
-      searchApi.query({ text: query, disposition: "CURRENT_TAB" }, () => {
-        if (globalThis.chrome?.runtime?.lastError) {
-          elements.shortcutStatus.textContent = "Search is unavailable. Check your browser search settings.";
-          resetSearchNavigation();
-        }
-      });
-    } catch {
-      elements.shortcutStatus.textContent = "Search is unavailable. Check your browser search settings.";
-      resetSearchNavigation();
-    }
+async function submitToSelectedSearchEngine(query) {
+  if (typeof globalThis.chrome?.search?.query !== "function") {
+    reportSearchUnavailable();
     return;
   }
 
-  if (globalThis.chrome?.runtime?.id) {
-    elements.shortcutStatus.textContent = "Search is unavailable. Check your browser search settings.";
-    resetSearchNavigation();
-    return;
+  try {
+    await globalThis.chrome.search.query({ text: query, disposition: "CURRENT_TAB" });
+  } catch {
+    reportSearchUnavailable();
   }
-
-  window.location.assign(fallbackSearchUrl(query));
 }
 
 function resetSearchNavigation() {
@@ -1308,22 +1285,20 @@ function resetSearchNavigation() {
   elements.searchForm.setAttribute("aria-busy", "false");
 }
 
-function navigateFromSearch(target) {
+function navigateFromSearch(query) {
   if (searchNavigationPending) return;
   searchNavigationPending = true;
   elements.searchForm.classList.add("is-submitting");
   elements.searchForm.setAttribute("aria-busy", "true");
 
   if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-    if (target.type === "url") window.location.assign(target.value);
-    else submitToSelectedSearchEngine(target.value);
+    void submitToSelectedSearchEngine(query);
     return;
   }
 
   document.body.classList.add("is-navigating");
   searchNavigationTimer = window.setTimeout(() => {
-    if (target.type === "url") window.location.assign(target.value);
-    else submitToSelectedSearchEngine(target.value);
+    void submitToSelectedSearchEngine(query);
   }, SEARCH_NAVIGATION_DELAY_MS);
 }
 
@@ -1343,7 +1318,7 @@ async function initialize() {
 elements.searchForm.addEventListener("submit", (event) => {
   event.preventDefault();
   const query = elements.searchInput.value.trim();
-  if (query) navigateFromSearch(searchTarget(query));
+  if (query) navigateFromSearch(query);
 });
 
 window.addEventListener("pageshow", resetSearchNavigation);

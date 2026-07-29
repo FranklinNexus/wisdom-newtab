@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## 0.8.1 - 2026-07-29
+
+- Removed the provider-specific web-preview fallback so every submitted query uses Chrome Search API exclusively.
+- Removed direct URL handling from the search field to keep it strictly scoped to browser-selected web search.
+- Added validation that rejects hard-coded search providers and manually constructed search-result URLs.
+- Clarified the Chrome Web Store single-purpose and permission declarations for the Red Argon resubmission.
+
 ## 0.8.0 - 2026-07-29
 
 - Added automatic website favicons for shortcuts, with a letter fallback only when no icon is available.

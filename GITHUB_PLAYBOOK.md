@@ -14,7 +14,7 @@
 
 | 成就 | 真实触发方式 | 适合本项目的动作 |
 | --- | --- | --- |
-| Pull Shark | 合并 Pull Request | 后续功能全部使用 issue + feature branch + PR，例如导入导出配置、搜索引擎切换、快捷键自定义 |
+| Pull Shark | 合并 Pull Request | 后续功能全部使用 issue + feature branch + PR，例如导入导出配置、主题切换、快捷键自定义 |
 | Pair Extraordinaire | 合并含 co-author 的 commit | 与真实贡献者结对修一个 issue，并在 commit message 添加 `Co-authored-by:` footer |
 | Quickdraw | 在很短时间内关闭 issue / PR | 只用于能立即确认的重复 issue、无效链接或小型文档修复，不制造假问题 |
 | YOLO | 未经 review 合并 PR | 仅用于 CI 已通过、可立即回滚的低风险文档 PR；核心代码仍建议 review |
@@ -27,7 +27,7 @@ GitHub 会调整规则与等级阈值，且部分成就是历史限定；触发�
 ## 首批真实 issue
 
 - `feat: add configuration export and import`
-- `feat: support custom search engines`
+- `feat: support shortcut folders`
 - `feat: add keyboard shortcut preferences`
 - `design: create extension icons and store screenshots`
 - `test: add browser-level smoke tests`
@@ -41,7 +41,7 @@ GitHub 会调整规则与等级阈值，且部分成就是历史限定；触发�
 ```text
 main
   feat/config-portability
-  feat/search-engines
+  feat/shortcut-folders
   design/store-assets
   docs/english-readme
 ```

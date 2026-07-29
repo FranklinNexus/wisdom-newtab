@@ -107,6 +107,15 @@ await Promise.all([
 try {
   const source = await readFile("app.js", "utf8");
   new vm.Script(source, { filename: "app.js" });
+  if (!source.includes('chrome.search.query({ text: query, disposition: "CURRENT_TAB" })')) {
+    errors.push("Web searches must use chrome.search.query with the browser-selected provider");
+  }
+  if (/google\.com\/search|bing\.com\/search|duckduckgo\.com\/\?q|fallbackSearchUrl/.test(source)) {
+    errors.push("Provider-specific search URLs and search fallbacks are not allowed");
+  }
+  if (/window\.location\.assign\([^)]*query/.test(source)) {
+    errors.push("Search queries must not be navigated through a manually constructed URL");
+  }
   if (!source.includes("bookmarkSearch.focus({ preventScroll: true })")) {
     errors.push("Bookmark search focus must not scroll the settings panel");
   }

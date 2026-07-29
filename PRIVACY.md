@@ -22,7 +22,7 @@ The extension makes HTTPS requests only for its visible, user-facing features:
 
 - `api.github.com` provides public repository metadata for the GitHub Trending widget.
 - `hacker-news.firebaseio.com` provides public Hacker News story data.
-- When you submit a search, the text is passed to the browser's selected search provider through `chrome.search.query`; the extension does not choose or change the default provider.
+- When you submit a search, the text is passed to the browser's selected search provider exclusively through `chrome.search.query`; the extension does not choose or change the default provider and has no provider-specific fallback.
 - When you open a shortcut or story, your browser navigates to that destination normally.
 
 The GitHub and Hacker News requests do not contain your shortcut configuration, search text, browsing history, or a developer-issued identifier.
@@ -37,7 +37,7 @@ The extension does not collect analytics, advertising identifiers, browsing hist
 
 - `storage` stores settings, shortcuts, timer state, and public-data caches locally.
 - `favicon` displays website icons already available through the browser's favicon service.
-- `search` submits search text through the browser's currently selected provider without changing it.
+- `search` submits search text exclusively through the browser's currently selected provider without changing it. If Chrome Search API is unavailable, no alternate provider is used.
 - `bookmarks` is optional and requested only after you select **Import bookmarks**. It reads the bookmark tree for the local picker and does not create, edit, move, or delete browser bookmarks.
 - Access to `https://api.github.com/*` is limited to public repository data used by the GitHub widget.
 - Access to `https://hacker-news.firebaseio.com/*` is limited to public story data used by the Hacker News widget.

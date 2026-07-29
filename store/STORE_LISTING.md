@@ -1,6 +1,6 @@
 # Chrome Web Store Submission
 
-This file contains reviewer-ready text and the exact upload checklist for Wisdom New Tab 0.8.0.
+This file contains reviewer-ready text and the exact upload checklist for Wisdom New Tab 0.8.1.
 
 ## Product details
 
@@ -13,7 +13,7 @@ Wisdom New Tab
 Summary:
 
 ```text
-A calm new tab with search, developer shortcuts, live tech trends, and a focus timer.
+Replace the new tab with a calm, customizable developer dashboard.
 ```
 
 Category: `Productivity`
@@ -25,7 +25,7 @@ Detailed description:
 ```text
 Wisdom New Tab replaces the default new tab page with a quiet workspace for developers and makers.
 
-Search with the browser's currently selected search engine, or use the saved site shortcuts. Keep frequently used sites close with editable visual shortcuts. A single, collapsible widget sidebar switches between live GitHub repository trends, current Hacker News stories, and a local 25/5 focus timer.
+Use the search field with the browser's currently selected search engine, or open a saved site shortcut. The search field calls Chrome Search API only; it never selects or changes the search provider. Keep frequently used sites close with editable visual shortcuts. A single, collapsible widget sidebar switches between live GitHub repository trends, current Hacker News stories, and a local 25/5 focus timer.
 
 Highlights:
 - Calm, responsive new tab layout
@@ -60,7 +60,7 @@ The optional 1400x560 marquee tile and YouTube video can be added later. Do not 
 Single purpose:
 
 ```text
-Replace the browser new tab page with a calm developer dashboard. Its single purpose is to provide a focused new-tab workspace with browser-selected web search, user-configured shortcuts, public technology trends, and a local focus timer. It never changes the default search engine.
+This extension has one purpose: replace Chrome's new tab page with a customizable developer dashboard. It does not override or modify the default search engine, omnibox, home page, startup pages, or searches outside its own new tab page. The new-tab search field delegates submitted text exclusively to `chrome.search.query`, which uses the search provider already selected by the user in Chrome.
 ```
 
 Permission justification for `storage`:
@@ -72,7 +72,7 @@ Stores the user's interface preferences, configured shortcut names, URLs, colors
 Permission justification for `search`:
 
 ```text
-Uses chrome.search.query to submit text from the new-tab search field through the user's currently selected browser search engine. The extension does not set, replace, or modify the default search provider.
+Used only when the user submits the search field inside the replacement new tab page. Every query is passed directly to `chrome.search.query({ text, disposition: "CURRENT_TAB" })`, which uses the provider already selected by the user in Chrome. The extension contains no provider-specific search URL, no alternate-provider fallback, and no code or manifest setting that sets, replaces, or modifies the default search provider.
 ```
 
 Permission justification for `favicon`:
@@ -108,7 +108,7 @@ No. The extension does not execute remote code. All JavaScript is packaged with 
 Data handling declaration:
 
 ```text
-The developer does not collect or retain user data. The extension handles user-configured shortcuts, optional custom logos, and preferences locally. The optional bookmark picker reads the current browser's bookmark tree only after the user invokes it and stores only explicitly selected bookmarks as shortcuts. Search text is passed to the browser-selected provider through Chrome Search API only after the user submits it. Public GitHub and Hacker News requests contain no user data. There are no analytics, ads, tracking identifiers, or background browsing-history collection.
+The developer does not collect or retain user data. The extension handles user-configured shortcuts, optional custom logos, and preferences locally. The optional bookmark picker reads the current browser's bookmark tree only after the user invokes it and stores only explicitly selected bookmarks as shortcuts. Search text is passed directly to Chrome Search API only after the user submits it; the API uses the provider already selected in Chrome. The extension has no provider-specific fallback. Public GitHub and Hacker News requests contain no user data. There are no analytics, ads, tracking identifiers, or background browsing-history collection.
 ```
 
 Do not claim that the extension handles no data at all: Chrome's policy treats locally stored user settings as user-data handling. Answer the dashboard's standardized categories according to the exact wording shown there, and keep the declarations consistent with the public privacy policy.
@@ -136,7 +136,7 @@ https://github.com/FranklinNexus/wisdom-newtab/blob/main/PRIVACY.md
 
 ```text
 1. Install the extension and open a new tab.
-2. Submit a search to verify navigation through the browser's currently selected search engine.
+2. Submit a search and verify that it uses the search engine currently selected in Chrome. The implementation calls `chrome.search.query` and contains no provider-specific fallback.
 3. Select the GitHub, Hacker News, and focus timer icons in the right sidebar; only one widget is visible at a time.
 4. Use the rightmost sidebar control to collapse the sidebar, then use the right-edge handle to reopen it.
 5. Open Settings to verify the Light / Dark preference persists after opening another new tab.
@@ -146,10 +146,22 @@ https://github.com/FranklinNexus/wisdom-newtab/blob/main/PRIVACY.md
 No account, paid service, API key, or special test credential is required.
 ```
 
+## Reviewer note for Red Argon resubmission
+
+```text
+Version 0.8.1 addresses the Red Argon single-purpose rejection.
+
+Wisdom New Tab only overrides Chrome's new tab page through `chrome_url_overrides.newtab`. It does not declare `chrome_settings_overrides`, does not modify the default search engine, and does not alter searches from the omnibox or any other browser surface.
+
+The search field inside the new tab now has exactly one code path: `chrome.search.query({ text, disposition: "CURRENT_TAB" })`. This delegates the query to the search provider already selected by the user in Chrome. Version 0.8.1 removes the previous hard-coded Google fallback and removes direct URL/address-bar behavior. If Chrome Search API is unavailable, the extension displays an error and performs no search.
+
+Please test by selecting any default search engine in Chrome settings, opening a new tab, and submitting a query. The result uses that selected provider.
+```
+
 ## Submission order
 
 1. Register or open the Chrome Web Store developer account.
-2. Upload `wisdom-newtab-chrome-v0.8.0.zip` with `manifest.json` at the ZIP root.
+2. Upload `wisdom-newtab-chrome-v0.8.1.zip` with `manifest.json` at the ZIP root.
 3. Complete Store Listing using the text and images above.
 4. Complete Privacy practices using the permission explanations above.
 5. Set Distribution to free and public.
