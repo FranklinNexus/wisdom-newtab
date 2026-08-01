@@ -39,7 +39,7 @@ const defaultSettings = {
   shortcuts: [
     { id: "wisdomechoes", label: "Blog", url: "https://www.wisdomechoes.net/", color: "#29282c" },
     { id: "langqian", label: "SurferGarage", url: "https://www.lang-qian.com/", color: "#ef4f35" },
-    { id: "github", label: "GitHub", url: "https://github.com/kfr34", color: "#171717" }
+    { id: "github", label: "GitHub", url: "https://github.com/FranklinNexus", color: "#171717" }
   ]
 };
 
@@ -117,7 +117,6 @@ const elements = {
   searchInput: document.querySelector("#search-input"),
   settingsDialog: document.querySelector("#settings-dialog"),
   settingsForm: document.querySelector("#settings-form"),
-  settingsOpen: document.querySelector("#settings-open"),
   shortcutsManage: document.querySelector("#shortcuts-manage"),
   paletteInputs: [...document.querySelectorAll('input[name="palette"]')],
   bookmarkApply: document.querySelector("#bookmark-apply"),
@@ -247,10 +246,14 @@ function sanitizeSettings(candidate) {
         const id = String(item.id || `shortcut-${Date.now()}-${index}`);
         const rawLabel = String(item.label || "Untitled").slice(0, 28);
         const labelMigration = shortcutLabelMigrations[id];
+        const normalizedUrl = normalizeUrl(item.url);
+        const url = id === "github" && /^https:\/\/github\.com\/kfr34\/?$/i.test(normalizedUrl)
+          ? "https://github.com/FranklinNexus"
+          : normalizedUrl;
         return {
           id,
           label: labelMigration?.from === rawLabel ? labelMigration.to : rawLabel,
-          url: normalizeUrl(item.url),
+          url,
           color: safeColor(item.color, ["#29282c", "#ef4f35", "#171717", "#3d5c91"][index % 4]),
           logo: safeCustomLogo(item.logo)
         };
@@ -1201,18 +1204,16 @@ function applySelectedBookmarks() {
   updateShortcutEditorState();
 }
 
-function openSettings(shortcutsOnly = false) {
+function openSettings() {
   if (elements.settingsDialog.open || settingsDialogClosing) return;
   setShortcutEditMode(false);
   renderSettings();
-  settingsReturnFocus = document.activeElement instanceof HTMLElement ? document.activeElement : elements.settingsOpen;
+  settingsReturnFocus = document.activeElement instanceof HTMLElement ? document.activeElement : elements.shortcutsManage;
   settingsDialogClosing = false;
   clearTimeout(settingsCloseTimer);
   elements.settingsDialog.classList.remove("is-open", "is-closing");
-  elements.settingsOpen.classList.toggle("is-active", !shortcutsOnly);
-  elements.shortcutsManage.classList.toggle("is-active", shortcutsOnly);
-  elements.settingsOpen.setAttribute("aria-expanded", String(!shortcutsOnly));
-  elements.shortcutsManage.setAttribute("aria-expanded", String(shortcutsOnly));
+  elements.shortcutsManage.classList.add("is-active");
+  elements.shortcutsManage.setAttribute("aria-expanded", "true");
 
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   if (reducedMotion) elements.settingsDialog.classList.add("is-open");
@@ -1221,9 +1222,7 @@ function openSettings(shortcutsOnly = false) {
     elements.settingsDialog.getBoundingClientRect();
     requestAnimationFrame(() => elements.settingsDialog.classList.add("is-open"));
   }
-  if (shortcutsOnly) {
-    requestAnimationFrame(() => elements.shortcutSettings.scrollIntoView({ block: "start" }));
-  }
+  requestAnimationFrame(() => elements.shortcutSettings.scrollIntoView({ block: "start" }));
 }
 
 function finishSettingsClose() {
@@ -1231,9 +1230,7 @@ function finishSettingsClose() {
   clearTimeout(settingsCloseTimer);
   elements.settingsDialog.close();
   elements.settingsDialog.classList.remove("is-open", "is-closing");
-  elements.settingsOpen.classList.remove("is-active");
   elements.shortcutsManage.classList.remove("is-active");
-  elements.settingsOpen.setAttribute("aria-expanded", "false");
   elements.shortcutsManage.setAttribute("aria-expanded", "false");
   settingsDialogClosing = false;
   const returnFocus = settingsReturnFocus;
@@ -1251,9 +1248,7 @@ function closeSettings() {
   settingsDialogClosing = true;
   elements.settingsDialog.classList.add("is-closing");
   elements.settingsDialog.classList.remove("is-open");
-  elements.settingsOpen.classList.remove("is-active");
   elements.shortcutsManage.classList.remove("is-active");
-  elements.settingsOpen.setAttribute("aria-expanded", "false");
   elements.shortcutsManage.setAttribute("aria-expanded", "false");
   settingsCloseTimer = window.setTimeout(finishSettingsClose, SETTINGS_TRANSITION_MS + 80);
 }
@@ -1323,8 +1318,7 @@ elements.searchForm.addEventListener("submit", (event) => {
 
 window.addEventListener("pageshow", resetSearchNavigation);
 
-elements.settingsOpen.addEventListener("click", () => openSettings(false));
-elements.shortcutsManage.addEventListener("click", () => openSettings(true));
+elements.shortcutsManage.addEventListener("click", openSettings);
 document.querySelector("#settings-close").addEventListener("click", closeSettings);
 elements.shortcutAdd.addEventListener("click", () => {
   if (!elements.bookmarkImporter.hidden) closeBookmarkImporter();

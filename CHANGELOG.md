@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Removed the duplicate settings control so the bookmark button is the single customization entry point.
+- Updated the default GitHub shortcut to FranklinNexus and migrated the previous saved default automatically.
+
 ## 0.8.1 - 2026-07-29
 
 - Removed the provider-specific web-preview fallback so every submitted query uses Chrome Search API exclusively.

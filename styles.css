@@ -288,24 +288,17 @@ body.is-navigating .app-shell {
   transform: translateY(1px);
 }
 
-#settings-open svg,
 #shortcuts-manage svg {
   transition: color 180ms ease, transform 300ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-#settings-open.is-active,
 #shortcuts-manage.is-active {
   border-color: var(--line);
   background: var(--surface);
 }
 
-#settings-open.is-active svg,
 #shortcuts-manage.is-active svg {
   color: var(--accent);
-}
-
-#settings-open.is-active svg {
-  transform: rotate(90deg);
 }
 
 .tool-button svg,
