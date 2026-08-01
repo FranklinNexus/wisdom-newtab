@@ -21,24 +21,25 @@ A Chrome / Edge new-tab extension inspired by [WisdomEchoes](https://www.wisdome
 
 ## Install
 
-For Edge or a manual development install, download `wisdom-newtab-latest.zip` from the rolling [latest development release](https://github.com/FranklinNexus/wisdom-newtab/releases/tag/latest), then extract it to a permanent folder. This package follows the current `main` branch and can be newer than the Chrome Web Store version.
+### Chrome Web Store (recommended)
+
+Install [Wisdom New Tab from the Chrome Web Store](https://chromewebstore.google.com/detail/wisdom-new-tab/iblipgagbkancojmhmlegakiaffjcdja), select **Add to Chrome**, and confirm **Add extension**. Open a new tab after installation.
+
+Desktop Microsoft Edge can use the same listing. If prompted, first select **Allow extensions from other stores**, then install Wisdom New Tab from the Chrome Web Store.
+
+Chrome on Android and iPhone does not support Chrome extensions or new-tab overrides, so Wisdom New Tab is currently desktop-only. The extension stores preferences locally and does not sync them to mobile.
+
+### Manual development install
+
+For local testing, download `wisdom-newtab-latest.zip` from the rolling [latest development release](https://github.com/FranklinNexus/wisdom-newtab/releases/tag/latest), then extract it to a permanent folder. This package follows the current `main` branch and can be newer than the Chrome Web Store version.
 
 Versioned GitHub Releases remain immutable so they continue to match submitted store packages. Chrome and Edge load the extracted folder, not the ZIP itself.
 
-### Chrome
-
-1. Open `chrome://extensions`.
+1. Open `chrome://extensions` in Chrome or `edge://extensions` in Edge.
 2. Turn on **Developer mode**.
 3. Select **Load unpacked**.
 4. Choose the extracted `wisdom-newtab` folder.
 5. Open a new tab.
-
-### Edge
-
-1. Open `edge://extensions`.
-2. Turn on **Developer mode**.
-3. Select **Load unpacked**.
-4. Choose the extracted `wisdom-newtab` folder.
 
 After changing code, select **Reload** on the extension card and then open a new tab.
 
