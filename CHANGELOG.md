@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.8.2 - 2026-08-01
+
 - Removed the duplicate settings control so the bookmark button is the single customization entry point.
 - Updated the default GitHub shortcut to FranklinNexus and migrated the previous saved default automatically.
 

@@ -1,6 +1,6 @@
 # Chrome Web Store Submission
 
-This file contains reviewer-ready text and the exact upload checklist for Wisdom New Tab 0.8.1.
+This file contains reviewer-ready text and the exact upload checklist for Wisdom New Tab 0.8.2.
 
 ## Product details
 
@@ -149,11 +149,11 @@ No account, paid service, API key, or special test credential is required.
 ## Reviewer note for Red Argon resubmission
 
 ```text
-Version 0.8.1 addresses the Red Argon single-purpose rejection.
+Version 0.8.2 retains the Red Argon single-purpose correction introduced in 0.8.1.
 
 Wisdom New Tab only overrides Chrome's new tab page through `chrome_url_overrides.newtab`. It does not declare `chrome_settings_overrides`, does not modify the default search engine, and does not alter searches from the omnibox or any other browser surface.
 
-The search field inside the new tab now has exactly one code path: `chrome.search.query({ text, disposition: "CURRENT_TAB" })`. This delegates the query to the search provider already selected by the user in Chrome. Version 0.8.1 removes the previous hard-coded Google fallback and removes direct URL/address-bar behavior. If Chrome Search API is unavailable, the extension displays an error and performs no search.
+The search field inside the new tab has exactly one code path: `chrome.search.query({ text, disposition: "CURRENT_TAB" })`. This delegates the query to the search provider already selected by the user in Chrome. The extension has no hard-coded search-provider fallback or direct URL/address-bar behavior. If Chrome Search API is unavailable, the extension displays an error and performs no search.
 
 Please test by selecting any default search engine in Chrome settings, opening a new tab, and submitting a query. The result uses that selected provider.
 ```
@@ -161,7 +161,7 @@ Please test by selecting any default search engine in Chrome settings, opening a
 ## Submission order
 
 1. Register or open the Chrome Web Store developer account.
-2. Upload `wisdom-newtab-chrome-v0.8.1.zip` with `manifest.json` at the ZIP root.
+2. Upload `wisdom-newtab-chrome-v0.8.2.zip` with `manifest.json` at the ZIP root.
 3. Complete Store Listing using the text and images above.
 4. Complete Privacy practices using the permission explanations above.
 5. Set Distribution to free and public.
