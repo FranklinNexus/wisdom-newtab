@@ -91,7 +91,7 @@
     <main>
       <h1>Privacy Policy</h1>
       <p class="effective">Effective August 1, 2026</p>
-      <p>Wisdom New Tab is available as a desktop browser extension and an installable mobile web app. Both provide search, shortcuts, public developer news, and a local focus timer. This policy explains the limited data each version handles.</p>
+      <p>Wisdom New Tab is available as a browser extension for desktop browsers and Edge Android, plus an installable mobile web app. Each edition provides search, shortcuts, public developer news, and a local focus timer. This policy explains the limited data each version handles.</p>
 
       <h2>Data stored on your device</h2>
       <p>The desktop extension uses <code>chrome.storage.local</code>, and the mobile web app uses browser <code>localStorage</code>, to save interface preferences, shortcut names, URLs, colors and optional custom logo images, widget state, cached public GitHub and Hacker News results, and focus timer state. This information stays in your browser profile or installed web app. The developer does not receive or maintain a server-side copy. The mobile app also uses Cache Storage to keep its own static interface files available offline.</p>
@@ -105,12 +105,12 @@
         <li>Opening a shortcut or story navigates your browser to that destination normally.</li>
       </ul>
       <p>GitHub and Hacker News requests do not contain shortcut settings, search text, browsing history, or a developer-issued identifier.</p>
-      <p>In the desktop extension, website shortcut icons come from the browser's favicon service. If you choose <strong>Import bookmarks</strong>, the extension asks for bookmark access at that moment and stores only bookmarks you explicitly add as shortcuts. Bookmark folders and unselected bookmarks are not copied into extension storage or sent anywhere. The mobile web app does not request or read browser bookmarks.</p>
+      <p>In the Chrome extension, website shortcut icons come from the browser's favicon service. If you choose <strong>Import bookmarks</strong>, the extension asks for bookmark access at that moment and stores only bookmarks you explicitly add as shortcuts. Bookmark folders and unselected bookmarks are not copied into extension storage or sent anywhere. The Edge Android package and mobile web app do not request or read browser bookmarks; Edge Android uses bundled brand marks or local letter fallbacks for shortcut icons.</p>
 
       <h2>Data the developer does not collect</h2>
       <p>Wisdom New Tab does not collect analytics, advertising identifiers, browsing history, passwords, authentication data, financial information, health information, precise location, personal communications, or content from pages you visit. It does not inject scripts into other websites and does not sell or share user data for advertising or profiling.</p>
 
-      <h2>Desktop extension permissions</h2>
+      <h2>Browser extension permissions</h2>
       <ul>
         <li><code>storage</code> stores settings, shortcuts, timer state, and public-data caches locally.</li>
         <li><code>favicon</code> displays website icons available through the browser's favicon service.</li>
@@ -119,6 +119,7 @@
         <li>GitHub API access is limited to public repository data used by the GitHub widget.</li>
         <li>Hacker News API access is limited to public story data used by the Hacker News widget.</li>
       </ul>
+      <p>The Edge Android package requests only <code>storage</code>, <code>search</code>, and the two public-data host permissions. It does not request <code>favicon</code> or <code>bookmarks</code> because those APIs are not exposed by Edge Android.</p>
       <p>The extension does not execute remotely hosted code. All executable code is included in the installed package.</p>
 
       <h2>Limited use</h2>

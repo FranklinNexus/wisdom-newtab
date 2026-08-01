@@ -285,6 +285,8 @@ function automaticFaviconUrl(url) {
   const normalized = normalizeUrl(url);
   if (!normalized) return "";
   if (globalThis.chrome?.runtime?.getURL) {
+    const declaredPermissions = chrome.runtime.getManifest?.().permissions;
+    if (Array.isArray(declaredPermissions) && !declaredPermissions.includes("favicon")) return "";
     return `${chrome.runtime.getURL("_favicon/")}?pageUrl=${encodeURIComponent(normalized)}&size=64`;
   }
   try {
@@ -1298,6 +1300,11 @@ function navigateFromSearch(query) {
 }
 
 async function initialize() {
+  const bookmarkImportAvailable = Boolean(
+    globalThis.chrome?.permissions?.request && globalThis.chrome?.bookmarks?.getTree
+  );
+  elements.bookmarkImport.hidden = !bookmarkImportAvailable;
+
   const storedSettings = sanitizeSettings(await storage.get(STORAGE_KEY, defaultSettings));
   const appearance = cachedAppearance();
   const widgetCollapsed = cachedWidgetCollapsed();

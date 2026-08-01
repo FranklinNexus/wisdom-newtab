@@ -27,7 +27,9 @@ const requiredFiles = [
   "app/pwa.css",
   "app/pwa.js",
   "app/service-worker.js",
+  "scripts/package-edge.ps1",
   "store/STORE_LISTING.md",
+  "store/EDGE_ADDONS_SUBMISSION.md",
   "store/assets/icon-128.png",
   "store/assets/promo-small-440x280.png",
   "store/assets/01-github-1280x800.png",
@@ -140,6 +142,12 @@ try {
   new vm.Script(source, { filename: "app.js" });
   if (!source.includes('chrome.search.query({ text: query, disposition: "CURRENT_TAB" })')) {
     errors.push("Web searches must use chrome.search.query with the browser-selected provider");
+  }
+  if (!source.includes('!declaredPermissions.includes("favicon")')) {
+    errors.push("Packages without the favicon permission must use shortcut letter fallbacks");
+  }
+  if (!source.includes("elements.bookmarkImport.hidden = !bookmarkImportAvailable")) {
+    errors.push("Bookmark import must hide when the browser does not expose the bookmarks API");
   }
   if (/google\.com\/search|bing\.com\/search|duckduckgo\.com\/\?q|fallbackSearchUrl/.test(source)) {
     errors.push("Provider-specific search URLs and search fallbacks are not allowed");

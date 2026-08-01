@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Added a dedicated Microsoft Edge Add-ons package compatible with Edge on Android.
+- Removed unsupported `favicon` and `bookmarks` permissions from the Edge package while keeping the Chrome package unchanged.
+- Added runtime fallbacks for shortcut icons and bookmark import on browsers with a smaller extension API surface.
 - Added an installable mobile PWA with the responsive dashboard, Google search, offline shell caching, and home-screen icons.
 - Added a mobile installation path and platform-specific guidance to the public install page.
 - Updated the privacy policy to distinguish desktop extension search from mobile web-app search.
