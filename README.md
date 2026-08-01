@@ -23,9 +23,9 @@ A Chrome / Edge new-tab extension inspired by [WisdomEchoes](https://www.wisdome
 
 ### Chrome Web Store (recommended)
 
-Install [Wisdom New Tab from the Chrome Web Store](https://chromewebstore.google.com/detail/wisdom-new-tab/iblipgagbkancojmhmlegakiaffjcdja), select **Add to Chrome**, and confirm **Add extension**. Open a new tab after installation.
+Open the [Wisdom New Tab installation page](https://franklinnexus.github.io/wisdom-newtab/), continue to the Chrome Web Store, select **Add to Chrome**, and confirm **Add extension**. Open a new tab after installation.
 
-Desktop Microsoft Edge can use the same listing. If prompted, first select **Allow extensions from other stores**, then install Wisdom New Tab from the Chrome Web Store.
+Desktop Microsoft Edge can use the same listing. If prompted, first select **Allow extensions from other stores**, then install Wisdom New Tab from the Chrome Web Store. Edge may pause a new-tab extension after installation; select **Turn on** once to confirm the browser-setting change.
 
 Chrome on Android and iPhone does not support Chrome extensions or new-tab overrides, so Wisdom New Tab is currently desktop-only. The extension stores preferences locally and does not sync them to mobile.
 
