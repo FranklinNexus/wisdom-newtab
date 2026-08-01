@@ -13,11 +13,20 @@ const requiredFiles = [
   "assets/extension/icon32.png",
   "assets/extension/icon48.png",
   "assets/extension/icon128.png",
+  "assets/pwa/icon192.png",
+  "assets/pwa/icon512.png",
   "assets/logos/wisdomechoes.png",
   "assets/logos/langqian.png",
   "assets/logos/github.svg",
   "PRIVACY.md",
   "privacy.html",
+  "index.html",
+  "install.css",
+  "app/index.html",
+  "app/manifest.webmanifest",
+  "app/pwa.css",
+  "app/pwa.js",
+  "app/service-worker.js",
   "store/STORE_LISTING.md",
   "store/assets/icon-128.png",
   "store/assets/promo-small-440x280.png",
@@ -73,6 +82,26 @@ if (manifest) {
   if (!optionalPermissions.includes("bookmarks")) errors.push("The bookmarks permission must remain optional");
 }
 
+let pwaManifest;
+try {
+  pwaManifest = JSON.parse(await readFile("app/manifest.webmanifest", "utf8"));
+} catch (error) {
+  errors.push(`Invalid app/manifest.webmanifest: ${error.message}`);
+}
+
+if (pwaManifest) {
+  if (pwaManifest.start_url !== "./" || pwaManifest.scope !== "./") {
+    errors.push("The mobile app manifest must remain scoped to app/");
+  }
+  if (pwaManifest.display !== "standalone") {
+    errors.push("The mobile app must use standalone display mode");
+  }
+  const iconSizes = new Set((pwaManifest.icons || []).map((icon) => icon.sizes));
+  if (!iconSizes.has("192x192") || !iconSizes.has("512x512")) {
+    errors.push("The mobile app manifest must include 192x192 and 512x512 icons");
+  }
+}
+
 async function assertPngSize(path, expectedWidth, expectedHeight) {
   try {
     const bytes = await readFile(path);
@@ -97,6 +126,8 @@ await Promise.all([
   assertPngSize("assets/extension/icon32.png", 32, 32),
   assertPngSize("assets/extension/icon48.png", 48, 48),
   assertPngSize("assets/extension/icon128.png", 128, 128),
+  assertPngSize("assets/pwa/icon192.png", 192, 192),
+  assertPngSize("assets/pwa/icon512.png", 512, 512),
   assertPngSize("store/assets/icon-128.png", 128, 128),
   assertPngSize("store/assets/promo-small-440x280.png", 440, 280),
   assertPngSize("store/assets/01-github-1280x800.png", 1280, 800),
@@ -133,7 +164,17 @@ try {
   errors.push(`Invalid theme-init.js: ${error.message}`);
 }
 
+for (const path of ["app/pwa.js", "app/service-worker.js"]) {
+  try {
+    const source = await readFile(path, "utf8");
+    new vm.Script(source, { filename: path });
+  } catch (error) {
+    errors.push(`Invalid ${path}: ${error.message}`);
+  }
+}
+
 const html = await readFile("newtab.html", "utf8").catch(() => "");
+const pwaHtml = await readFile("app/index.html", "utf8").catch(() => "");
 const styles = await readFile("styles.css", "utf8").catch(() => "");
 if (styles && !/\.bookmark-item\s*\{[\s\S]*?grid-template-columns:\s*36px\s+minmax\(0,\s*1fr\)\s+18px\s*;/m.test(styles)) {
   errors.push("Bookmark rows must reserve columns for the logo, copy, and selection control");
@@ -146,6 +187,12 @@ if (html && /<script(?![^>]*\bsrc=)/i.test(html)) {
 }
 if (html && !/<script\s+src=["']theme-init\.js["']><\/script>\s*<link\s+rel=["']stylesheet["']/i.test(html)) {
   errors.push("theme-init.js must load before styles.css to restore the theme before first paint");
+}
+if (pwaHtml && !pwaHtml.includes('<link rel="manifest" href="app/manifest.webmanifest"')) {
+  errors.push("The mobile app must link its web app manifest");
+}
+if (pwaHtml && /<script(?![^>]*\bsrc=)/i.test(pwaHtml)) {
+  errors.push("Inline scripts are not allowed in the mobile app");
 }
 
 if (errors.length) {

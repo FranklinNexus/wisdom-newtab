@@ -18,6 +18,7 @@ A Chrome / Edge new-tab extension inspired by [WisdomEchoes](https://www.wisdome
 - Ten-minute, visibility-aware public-data refreshes with cached offline fallback.
 - Immediate Light / Dark and theme controls with persistent local preferences.
 - Settings stored only in the browser.
+- An installable mobile web app with the same dashboard layout and Google search.
 
 ## Install
 
@@ -27,7 +28,13 @@ Open the [Wisdom New Tab installation page](https://franklinnexus.github.io/wisd
 
 Desktop Microsoft Edge can use the same listing. If prompted, first select **Allow extensions from other stores**, then install Wisdom New Tab from the Chrome Web Store. Edge may pause a new-tab extension after installation; select **Turn on** once to confirm the browser-setting change.
 
-Chrome on Android and iPhone does not support Chrome extensions or new-tab overrides, so Wisdom New Tab is currently desktop-only. The extension stores preferences locally and does not sync them to mobile.
+Chrome on Android and iPhone does not support Chrome extensions or new-tab overrides, so the extension package itself is desktop-only. The companion mobile app below provides the same core dashboard as an installable website.
+
+### Mobile app
+
+Open the [Wisdom New Tab mobile app](https://franklinnexus.github.io/wisdom-newtab/app/). On Android Chrome or Edge, use **Install app** or **Add to Home screen** from the browser menu. On iPhone, open the app in Safari, select Share, then **Add to Home Screen**.
+
+The mobile app runs independently from the desktop extension. Mobile browsers do not allow it to replace their built-in New Tab page, and locally saved settings do not sync between installations.
 
 ### Manual development install
 
@@ -70,6 +77,7 @@ assets/extension/      Chrome / Edge extension icons
 assets/logos/          Bundled Blog, SurferGarage, and GitHub logos
 scripts/validate.mjs   Zero-dependency project validation
 store/                 Chrome Web Store copy and submission assets
+app/                   Installable mobile PWA companion
 ```
 
 ## Privacy and Permissions

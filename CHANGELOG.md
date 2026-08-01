@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Added an installable mobile PWA with the responsive dashboard, Google search, offline shell caching, and home-screen icons.
+- Added a mobile installation path and platform-specific guidance to the public install page.
+- Updated the privacy policy to distinguish desktop extension search from mobile web-app search.
+
 ## 0.8.2 - 2026-08-01
 
 - Removed the duplicate settings control so the bookmark button is the single customization entry point.

@@ -47,7 +47,8 @@ footer {
 
 .brand,
 .github-link,
-.install-button {
+.install-button,
+.mobile-app-button {
   display: inline-flex;
   align-items: center;
   text-decoration: none;
@@ -113,17 +114,27 @@ h1 {
   font-size: 18px;
 }
 
-.install-button {
+.intro-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.install-button,
+.mobile-app-button {
   min-height: 50px;
   gap: 12px;
   justify-content: center;
   padding: 0 20px;
   border-radius: 6px;
-  color: #ffffff;
-  background: var(--text);
   font-size: 15px;
   font-weight: 700;
-  transition: background-color 160ms ease, transform 160ms ease;
+  transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease, transform 160ms ease;
+}
+
+.install-button {
+  color: #ffffff;
+  background: var(--text);
 }
 
 .install-button:hover {
@@ -133,6 +144,18 @@ h1 {
 
 .install-button:active {
   transform: translateY(0);
+}
+
+.mobile-app-button {
+  border: 1px solid var(--line);
+  color: var(--text);
+  background: var(--surface);
+}
+
+.mobile-app-button:hover {
+  border-color: var(--accent);
+  color: var(--accent-hover);
+  transform: translateY(-1px);
 }
 
 .browser-guide {
@@ -159,6 +182,11 @@ h1 {
   margin-bottom: 0;
   color: var(--muted);
   font-size: 15px;
+}
+
+.mobile-note .mobile-limit {
+  margin-top: 12px;
+  font-size: 13px;
 }
 
 .browser-guide .note {
@@ -227,6 +255,11 @@ footer a:hover {
   .install-button {
     width: 100%;
     justify-content: space-between;
+  }
+
+  .intro-actions,
+  .mobile-app-button {
+    width: 100%;
   }
 
   .browser-guide {

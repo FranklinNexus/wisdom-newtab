@@ -1,0 +1,58 @@
+.pwa-mode {
+  min-height: 100dvh;
+}
+
+.pwa-mode .app-shell {
+  min-height: 100dvh;
+}
+
+.pwa-install-button {
+  min-height: 36px;
+  padding: 0 13px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  color: var(--ink);
+  background: var(--surface);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: border-color 160ms ease, background-color 160ms ease, color 160ms ease;
+}
+
+.pwa-install-button:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.pwa-mode #bookmark-import {
+  display: none;
+}
+
+@media (display-mode: standalone) {
+  .pwa-install-button {
+    display: none;
+  }
+}
+
+@media (max-width: 760px) {
+  .pwa-mode .topbar {
+    min-height: calc(64px + env(safe-area-inset-top));
+    padding-top: env(safe-area-inset-top);
+  }
+
+  .pwa-mode .app-shell {
+    grid-template-rows: calc(64px + env(safe-area-inset-top)) minmax(0, 1fr);
+  }
+
+  .pwa-install-button {
+    min-height: 34px;
+    padding-inline: 11px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pwa-install-button {
+    transition: none;
+  }
+}

@@ -1,0 +1,334 @@
+<!doctype html>
+<html class="theme-pending" lang="en">
+  <head>
+    <base href="../" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="description" content="Wisdom New Tab mobile app with search, shortcuts, developer trends, and a focus timer." />
+    <meta name="theme-color" content="#f7f1e8" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Wisdom" />
+    <title>Wisdom New Tab</title>
+    <link rel="manifest" href="app/manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="assets/pwa/icon192.png" />
+    <script src="app/pwa.js"></script>
+    <script src="theme-init.js"></script>
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="app/pwa.css" />
+  </head>
+  <body class="pwa-mode">
+    <div class="app-shell">
+      <header class="topbar">
+        <div class="topbar-right">
+          <button class="pwa-install-button" id="pwa-install" type="button" hidden>Install app</button>
+          <button class="tool-button" id="shortcuts-manage" type="button" aria-label="Manage shortcuts" aria-controls="settings-dialog" aria-expanded="false" aria-haspopup="dialog" title="Manage shortcuts">
+            <svg aria-hidden="true"><use href="assets/icons.svg#bookmark"></use></svg>
+          </button>
+        </div>
+      </header>
+
+      <main class="home-stage" id="home-stage">
+        <section class="command-center" aria-label="Search and shortcuts">
+          <form class="search-bar" id="search-form" role="search">
+            <svg class="search-icon" aria-hidden="true"><use href="assets/icons.svg#search"></use></svg>
+            <label class="sr-only" for="search-input">Search the web</label>
+            <input id="search-input" type="search" inputmode="search" enterkeyhint="search" autocomplete="off" placeholder="Search Google" />
+            <button class="search-button" type="submit" aria-label="Search">
+              <svg aria-hidden="true"><use href="assets/icons.svg#arrow-up-right"></use></svg>
+            </button>
+          </form>
+
+          <div class="shortcut-grid" id="shortcut-grid" aria-label="Shortcuts"></div>
+          <p class="sr-only" id="shortcut-status" aria-live="polite"></p>
+        </section>
+
+        <aside class="widget-sidebar" id="widget-sidebar" aria-label="Widgets">
+          <header class="widget-sidebar-header">
+            <nav class="widget-tabs" aria-label="Choose widget" role="tablist">
+              <button class="widget-tab is-active" id="widget-tab-github" data-widget-tab="github" type="button" role="tab" aria-selected="true" aria-controls="widget-pane-github" aria-label="GitHub trends" title="GitHub trends">
+                <svg aria-hidden="true"><use href="assets/icons.svg#github"></use></svg>
+              </button>
+              <button class="widget-tab" id="widget-tab-hackernews" data-widget-tab="hackernews" type="button" role="tab" aria-selected="false" aria-controls="widget-pane-hackernews" aria-label="Hacker News" title="Hacker News">
+                <svg aria-hidden="true"><use href="assets/icons.svg#newspaper"></use></svg>
+              </button>
+              <button class="widget-tab" id="widget-tab-focus" data-widget-tab="focus" type="button" role="tab" aria-selected="false" aria-controls="widget-pane-focus" aria-label="Focus timer" title="Focus timer">
+                <svg aria-hidden="true"><use href="assets/icons.svg#timer"></use></svg>
+              </button>
+            </nav>
+
+            <div class="widget-sidebar-actions">
+              <button class="tool-button widget-refresh-button" id="widget-refresh" type="button" aria-label="Refresh widget" title="Refresh widget">
+                <svg aria-hidden="true"><use href="assets/icons.svg#refresh"></use></svg>
+              </button>
+              <button class="tool-button widget-collapse-button" id="widget-collapse" type="button" aria-label="Collapse widgets" title="Collapse widgets">
+                <svg aria-hidden="true"><use href="assets/icons.svg#panel-right-close"></use></svg>
+              </button>
+            </div>
+          </header>
+
+          <section class="widget-pane widget-pane-data is-active" id="widget-pane-github" data-widget-pane="github" role="tabpanel" aria-labelledby="widget-tab-github">
+            <header class="widget-pane-heading">
+              <div>
+                <span class="widget-kicker">BUILD / 01</span>
+                <h2 id="github-rising-title">Trending on GitHub</h2>
+              </div>
+            </header>
+            <ol class="github-list" id="github-list" aria-live="polite"></ol>
+            <footer class="widget-pane-footer">
+              <a id="github-search-link" href="https://github.com/search" rel="noreferrer">
+                <span id="github-search-label">View all</span>
+                <svg aria-hidden="true"><use href="assets/icons.svg#arrow-up-right"></use></svg>
+              </a>
+            </footer>
+          </section>
+
+          <section class="widget-pane widget-pane-data" id="widget-pane-hackernews" data-widget-pane="hackernews" role="tabpanel" aria-labelledby="widget-tab-hackernews" hidden>
+            <header class="widget-pane-heading">
+              <div>
+                <span class="widget-kicker">READ / 02</span>
+                <h2 id="hackernews-title">Hacker News</h2>
+              </div>
+            </header>
+            <ol class="hackernews-list" id="hackernews-list" aria-live="polite"></ol>
+            <footer class="widget-pane-footer">
+              <a id="hackernews-search-link" href="https://news.ycombinator.com/" rel="noreferrer">
+                <span id="hackernews-search-label">Open Hacker News</span>
+                <svg aria-hidden="true"><use href="assets/icons.svg#arrow-up-right"></use></svg>
+              </a>
+            </footer>
+          </section>
+
+          <section class="widget-pane focus-pane" id="widget-pane-focus" data-widget-pane="focus" role="tabpanel" aria-labelledby="widget-tab-focus" hidden>
+            <header class="widget-pane-heading">
+              <div>
+                <span class="widget-kicker">FOCUS / 03</span>
+                <h2 id="focus-title">Focus session</h2>
+              </div>
+            </header>
+            <div class="focus-body">
+              <div class="focus-mode-tabs" role="group" aria-label="Focus mode">
+                <button class="focus-mode is-active" data-focus-duration="25" type="button">25 min</button>
+                <button class="focus-mode" data-focus-duration="5" type="button">5 min</button>
+              </div>
+              <div class="focus-time" id="focus-time" aria-live="polite">25:00</div>
+              <div class="focus-progress" aria-hidden="true"><span id="focus-progress-bar"></span></div>
+              <div class="focus-actions">
+                <button class="primary-button focus-start-button" id="focus-start" type="button">
+                  <svg aria-hidden="true"><use href="assets/icons.svg#play"></use></svg>
+                  <span id="focus-start-label">Start</span>
+                </button>
+                <button class="tool-button focus-reset-button" id="focus-reset" type="button" aria-label="Reset timer" title="Reset timer">
+                  <svg aria-hidden="true"><use href="assets/icons.svg#rotate-ccw"></use></svg>
+                </button>
+              </div>
+              <div class="focus-sessions" aria-label="Completed focus sessions">
+                <span></span><span></span><span></span><span></span>
+              </div>
+            </div>
+          </section>
+        </aside>
+
+        <button class="widget-expand-button" id="widget-expand" type="button" aria-label="Open widgets" title="Open widgets">
+          <svg aria-hidden="true"><use href="assets/icons.svg#panel-right-open"></use></svg>
+        </button>
+      </main>
+
+    </div>
+
+    <dialog class="side-panel side-panel-right" id="settings-dialog" aria-labelledby="settings-title">
+      <form class="panel-shell" id="settings-form" method="dialog">
+        <header class="panel-header">
+          <h2 id="settings-title">Settings</h2>
+          <button class="tool-button" id="settings-close" type="button" aria-label="Close settings" title="Close">
+            <svg aria-hidden="true"><use href="assets/icons.svg#x"></use></svg>
+          </button>
+        </header>
+
+        <div class="panel-scroll settings-scroll">
+          <section class="settings-section" aria-labelledby="appearance-title">
+            <div class="section-label"><h3 id="appearance-title">Appearance</h3></div>
+
+            <fieldset class="choice-fieldset">
+              <legend>Surface</legend>
+              <div class="segmented-control" id="surface-control">
+                <span class="segmented-indicator" aria-hidden="true"></span>
+                <label><input type="radio" name="surface" value="light" /><span>Light</span></label>
+                <label><input type="radio" name="surface" value="dark" /><span>Dark</span></label>
+              </div>
+            </fieldset>
+
+            <fieldset class="choice-fieldset theme-fieldset">
+              <legend>Theme</legend>
+              <div class="theme-grid" id="palette-control">
+                <label class="theme-option" data-palette-preview="warm">
+                  <input type="radio" name="palette" value="warm" />
+                  <span class="theme-swatch" aria-hidden="true"><i></i><i></i><i></i></span>
+                  <span class="theme-name">Warm</span>
+                </label>
+                <label class="theme-option" data-palette-preview="porcelain">
+                  <input type="radio" name="palette" value="porcelain" />
+                  <span class="theme-swatch" aria-hidden="true"><i></i><i></i><i></i></span>
+                  <span class="theme-name">Porcelain</span>
+                </label>
+                <label class="theme-option" data-palette-preview="sage">
+                  <input type="radio" name="palette" value="sage" />
+                  <span class="theme-swatch" aria-hidden="true"><i></i><i></i><i></i></span>
+                  <span class="theme-name">Sage</span>
+                </label>
+                <label class="theme-option" data-palette-preview="graphite">
+                  <input type="radio" name="palette" value="graphite" />
+                  <span class="theme-swatch" aria-hidden="true"><i></i><i></i><i></i></span>
+                  <span class="theme-name">Graphite</span>
+                </label>
+              </div>
+            </fieldset>
+          </section>
+
+          <section class="settings-section" id="shortcut-settings" aria-labelledby="shortcuts-title">
+            <div class="section-label section-label-row">
+              <div>
+                <h3 id="shortcuts-title">Shortcuts</h3>
+                <span class="shortcut-count" id="shortcut-count">0 / 10</span>
+              </div>
+              <button class="secondary-button compact-action" id="bookmark-import" type="button">
+                <svg aria-hidden="true"><use href="assets/icons.svg#bookmark-plus"></use></svg>
+                Import bookmarks
+              </button>
+            </div>
+
+            <div class="bookmark-importer" id="bookmark-importer" hidden>
+              <div class="bookmark-importer-header">
+                <label class="bookmark-search" for="bookmark-search">
+                  <svg aria-hidden="true"><use href="assets/icons.svg#search"></use></svg>
+                  <input id="bookmark-search" type="search" autocomplete="off" placeholder="Search bookmarks" />
+                </label>
+                <button class="tool-button" id="bookmark-import-close" type="button" aria-label="Close bookmark import" title="Close">
+                  <svg aria-hidden="true"><use href="assets/icons.svg#x"></use></svg>
+                </button>
+              </div>
+              <div class="bookmark-list" id="bookmark-list" role="group" aria-label="Browser bookmarks"></div>
+              <div class="bookmark-importer-footer">
+                <span id="bookmark-selection-count">0 selected</span>
+                <button class="primary-button bookmark-apply" id="bookmark-apply" type="button" disabled>
+                  Add selected
+                  <svg aria-hidden="true"><use href="assets/icons.svg#check"></use></svg>
+                </button>
+              </div>
+              <p class="sr-only" id="bookmark-status" aria-live="polite"></p>
+            </div>
+
+            <div class="shortcut-editor" id="shortcut-editor"></div>
+            <button class="secondary-button" id="shortcut-add" type="button">
+              <svg aria-hidden="true"><use href="assets/icons.svg#plus"></use></svg>
+              Add shortcut
+            </button>
+          </section>
+        </div>
+
+        <footer class="panel-footer">
+          <button class="primary-button" type="submit">
+            Save
+            <svg aria-hidden="true"><use href="assets/icons.svg#check"></use></svg>
+          </button>
+        </footer>
+      </form>
+    </dialog>
+
+    <template id="shortcut-template">
+      <div class="shortcut-item">
+        <a class="shortcut" rel="noreferrer" draggable="false">
+          <span class="shortcut-icon"><img class="shortcut-logo" alt="" draggable="false" hidden /><b></b></span>
+          <span class="shortcut-label"></span>
+        </a>
+        <button class="shortcut-delete" type="button" tabindex="-1" aria-hidden="true">
+          <svg aria-hidden="true"><use href="assets/icons.svg#x"></use></svg>
+        </button>
+      </div>
+    </template>
+
+    <template id="github-repo-template">
+      <li class="github-repo">
+        <a rel="noreferrer">
+          <div class="github-repo-top">
+            <span class="github-rank"></span>
+            <span class="github-language"></span>
+            <svg aria-hidden="true"><use href="assets/icons.svg#arrow-up-right"></use></svg>
+          </div>
+          <h3></h3>
+          <p></p>
+          <div class="github-stats">
+            <span><svg aria-hidden="true"><use href="assets/icons.svg#star"></use></svg><b data-stat="stars"></b></span>
+            <span><svg aria-hidden="true"><use href="assets/icons.svg#git-fork"></use></svg><b data-stat="forks"></b></span>
+          </div>
+        </a>
+      </li>
+    </template>
+
+    <template id="hackernews-item-template">
+      <li class="hackernews-item">
+        <a rel="noreferrer">
+          <div class="hackernews-item-top">
+            <span class="hackernews-rank"></span>
+            <span class="hackernews-meta"></span>
+            <svg aria-hidden="true"><use href="assets/icons.svg#arrow-up-right"></use></svg>
+          </div>
+          <h3></h3>
+          <p></p>
+        </a>
+      </li>
+    </template>
+
+    <template id="shortcut-editor-template">
+      <div class="shortcut-row">
+        <div class="logo-editor">
+          <button class="logo-picker" type="button" aria-label="Choose custom logo" title="Choose custom logo">
+            <span class="logo-preview">
+              <img alt="" draggable="false" hidden />
+              <b></b>
+            </span>
+            <svg class="logo-edit-mark" aria-hidden="true"><use href="assets/icons.svg#image-up"></use></svg>
+          </button>
+          <input class="logo-file-input" data-field="logo-file" type="file" accept="image/png,image/jpeg,image/webp" hidden />
+          <button class="logo-auto tool-button" type="button" aria-label="Use website logo" title="Use website logo" hidden>
+            <svg aria-hidden="true"><use href="assets/icons.svg#rotate-ccw"></use></svg>
+          </button>
+        </div>
+        <label class="compact-field">
+          <span>Label</span>
+          <input data-field="label" maxlength="28" />
+        </label>
+        <label class="compact-field url-field">
+          <span>URL</span>
+          <input data-field="url" type="url" />
+        </label>
+        <label class="color-field" title="Shortcut color">
+          <span class="sr-only">Shortcut color</span>
+          <input data-field="color" type="color" />
+        </label>
+        <button class="tool-button remove-shortcut" type="button" aria-label="Remove shortcut" title="Remove shortcut">
+          <svg aria-hidden="true"><use href="assets/icons.svg#trash"></use></svg>
+        </button>
+      </div>
+    </template>
+
+    <template id="bookmark-item-template">
+      <label class="bookmark-item">
+        <input type="checkbox" />
+        <span class="bookmark-logo">
+          <img alt="" draggable="false" hidden />
+          <b></b>
+        </span>
+        <span class="bookmark-copy">
+          <strong></strong>
+          <small></small>
+        </span>
+        <svg class="bookmark-check" aria-hidden="true"><use href="assets/icons.svg#check"></use></svg>
+      </label>
+    </template>
+
+    <script src="app.js"></script>
+  </body>
+</html>
