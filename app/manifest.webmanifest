@@ -1,7 +1,7 @@
 {
   "name": "Wisdom New Tab",
   "short_name": "Wisdom",
-  "description": "A calm mobile dashboard with Google search, shortcuts, developer trends, and a focus timer.",
+  "description": "A calm web dashboard with Google search, shortcuts, developer trends, and a focus timer.",
   "id": "./",
   "start_url": "./",
   "scope": "./",

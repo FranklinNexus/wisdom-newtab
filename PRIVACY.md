@@ -2,11 +2,11 @@
 
 Effective date: August 1, 2026
 
-Wisdom New Tab is available as a browser extension for desktop browsers and Edge Android, plus an installable mobile web app. Each edition provides search, shortcuts, public developer news, and a local focus timer. This policy explains the limited data each version handles.
+Wisdom New Tab is a desktop browser extension that replaces the New Tab page with search, shortcuts, public developer news, and a local focus timer. This policy explains the limited data the extension handles.
 
 ## Data stored on your device
 
-The desktop extension uses `chrome.storage.local`, and the mobile web app uses browser `localStorage`, to save:
+The extension uses `chrome.storage.local` to save:
 
 - interface language and appearance preferences;
 - shortcut names, URLs, colors, and optional custom logo images that you configure;
@@ -14,7 +14,7 @@ The desktop extension uses `chrome.storage.local`, and the mobile web app uses b
 - cached public GitHub and Hacker News results; and
 - local focus timer state.
 
-This information stays in your browser profile or installed web app. The developer does not receive or maintain a server-side copy. Removing the extension or clearing the website's storage removes this local data according to your browser's normal behavior. The mobile app also uses Cache Storage to keep its own static interface files available offline.
+This information stays in your browser profile. The developer does not receive or maintain a server-side copy. Removing the extension or clearing its storage removes this local data according to your browser's normal behavior.
 
 ## Network requests
 
@@ -22,13 +22,12 @@ Wisdom New Tab makes HTTPS requests only for its visible, user-facing features:
 
 - `api.github.com` provides public repository metadata for the GitHub Trending widget.
 - `hacker-news.firebaseio.com` provides public Hacker News story data.
-- In the desktop extension, submitted search text is passed to the browser's selected search provider exclusively through `chrome.search.query`; the extension does not choose or change the default provider and has no provider-specific fallback.
-- In the mobile web app, submitted search text opens a Google Search results page and is therefore sent directly to Google under Google's privacy terms.
+- Submitted search text is passed to the browser's selected search provider exclusively through `chrome.search.query`; the extension does not choose or change the default provider and has no provider-specific fallback.
 - When you open a shortcut or story, your browser navigates to that destination normally.
 
 The GitHub and Hacker News requests do not contain your shortcut configuration, search text, browsing history, or a developer-issued identifier.
 
-In the Chrome extension, website shortcut icons are obtained through the browser's favicon service. If you choose **Import bookmarks**, the extension asks for bookmark access at that moment, reads the current browser's bookmark tree to show the picker, and stores only the bookmarks you explicitly add as shortcuts. Bookmark folders and unselected bookmarks are not copied into extension storage or sent anywhere. The Edge Android package and mobile web app do not request or read browser bookmarks; Edge Android uses bundled brand marks or local letter fallbacks for shortcut icons.
+In the Chrome extension, website shortcut icons are obtained through the browser's favicon service. If you choose **Import bookmarks**, the extension asks for bookmark access at that moment, reads the current browser's bookmark tree to show the picker, and stores only the bookmarks you explicitly add as shortcuts. Bookmark folders and unselected bookmarks are not copied into extension storage or sent anywhere. The reduced-permission Edge package uses bundled brand marks or local letter fallbacks and does not request bookmark access.
 
 ## Data the developer does not collect
 
@@ -42,8 +41,6 @@ Wisdom New Tab does not collect analytics, advertising identifiers, browsing his
 - `bookmarks` is optional and requested only after you select **Import bookmarks**. It reads the bookmark tree for the local picker and does not create, edit, move, or delete browser bookmarks.
 - Access to `https://api.github.com/*` is limited to public repository data used by the GitHub widget.
 - Access to `https://hacker-news.firebaseio.com/*` is limited to public story data used by the Hacker News widget.
-
-The Edge Android package requests only `storage`, `search`, and the two public-data host permissions. It does not request `favicon` or `bookmarks` because those APIs are not exposed by Edge Android.
 
 The extension does not execute remotely hosted code. All executable code is included in the installed package.
 

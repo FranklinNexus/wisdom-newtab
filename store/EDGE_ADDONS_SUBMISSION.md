@@ -1,6 +1,6 @@
 # Microsoft Edge Add-ons Submission
 
-Use `scripts/package-edge.ps1` to build `wisdom-newtab-edge-v0.8.2.zip`. This package is compatible with desktop Edge and Edge on Android. The Chrome Web Store package and its manifest remain unchanged.
+Use `scripts/package-edge.ps1` to build `wisdom-newtab-edge-v0.8.2.zip`. This package is intended for desktop Microsoft Edge. The Chrome Web Store package and its manifest remain unchanged.
 
 ## Product details
 
@@ -27,7 +27,7 @@ Wisdom New Tab replaces Microsoft Edge's default new tab page with a quiet works
 
 Search with the provider already selected in Edge, open editable visual shortcuts, follow public GitHub and Hacker News trends, or use the local 25/5 focus timer. A single collapsible sidebar keeps one widget visible at a time. Settings and caches remain in local extension storage, with no analytics, ads, or remote code.
 
-The Edge package supports desktop and Android. On Android, unsupported bookmark and favicon APIs are omitted; shortcut icons use bundled brand marks or local letter fallbacks.
+The Edge package omits bookmark and favicon APIs. Shortcut icons use bundled brand marks or local letter fallbacks.
 ```
 
 ## Privacy
@@ -77,8 +77,6 @@ https://franklinnexus.github.io/wisdom-newtab/privacy.html
 - Pricing: `Free`
 - Mature content: `No`
 
-Partner Center does not expose a separate Android checkbox in the documented Availability flow. Android compatibility is determined by Edge and the APIs declared in the package. Microsoft separately curates the public **Extensions for Mobile** collection, so normal publication does not guarantee immediate inclusion there. The published listing ID can be used with **Developer options > Extension install by id** in Edge Android builds that expose that option.
-
 ## Reviewer instructions
 
 ```text
@@ -87,9 +85,6 @@ Partner Center does not expose a separate Android checkbox in the documented Ava
 3. Switch between GitHub, Hacker News, and Focus in the single widget sidebar.
 4. Collapse the sidebar, open another new tab, and confirm the collapsed state is restored before first paint.
 5. Change the theme and confirm it is restored before first paint on another new tab.
-6. On Edge Android, confirm the bookmark import action is hidden and non-bundled shortcut icons use letter fallbacks.
-7. On Edge Android, choose Always start with a fresh new tab in Edge's startup setting, close Edge, and relaunch it to confirm the extension page opens.
-
 No account, API key, paid service, or test credential is required.
 ```
 
@@ -106,5 +101,3 @@ Official references:
 
 - https://learn.microsoft.com/en-us/microsoft-edge/extensions/developer-guide/api-support
 - https://learn.microsoft.com/en-us/microsoft-edge/extensions/publish/publish-extension
-- https://learn.microsoft.com/en-us/intune/app-management/configuration/configure-edge-ios-android
-- https://microsoftedge.microsoft.com/addons/collections/mobile_android_extensions

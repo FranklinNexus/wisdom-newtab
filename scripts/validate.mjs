@@ -93,14 +93,14 @@ try {
 
 if (pwaManifest) {
   if (pwaManifest.start_url !== "./" || pwaManifest.scope !== "./") {
-    errors.push("The mobile app manifest must remain scoped to app/");
+    errors.push("The web app manifest must remain scoped to app/");
   }
   if (pwaManifest.display !== "standalone") {
-    errors.push("The mobile app must use standalone display mode");
+    errors.push("The web app must use standalone display mode");
   }
   const iconSizes = new Set((pwaManifest.icons || []).map((icon) => icon.sizes));
   if (!iconSizes.has("192x192") || !iconSizes.has("512x512")) {
-    errors.push("The mobile app manifest must include 192x192 and 512x512 icons");
+    errors.push("The web app manifest must include 192x192 and 512x512 icons");
   }
 }
 
@@ -197,10 +197,10 @@ if (html && !/<script\s+src=["']theme-init\.js["']><\/script>\s*<link\s+rel=["']
   errors.push("theme-init.js must load before styles.css to restore the theme before first paint");
 }
 if (pwaHtml && !pwaHtml.includes('<link rel="manifest" href="app/manifest.webmanifest"')) {
-  errors.push("The mobile app must link its web app manifest");
+  errors.push("The web app must link its manifest");
 }
 if (pwaHtml && /<script(?![^>]*\bsrc=)/i.test(pwaHtml)) {
-  errors.push("Inline scripts are not allowed in the mobile app");
+  errors.push("Inline scripts are not allowed in the web app");
 }
 
 if (errors.length) {
